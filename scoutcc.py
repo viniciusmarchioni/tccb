@@ -1,23 +1,21 @@
 from fetchDBHelper import *
 
 times = fetch_teams(True)
-'''
+
 print("Selecione o time:")
 for i in range(len(times)):
     print(f"{i+1}- {times[i]}")
-'''
-#escolha = int(input())
+escolha = int(input())
 escolha = 6
 id_time = get_id(times[escolha-1])
 formacoes = get_formations(id_time)
-'''
+
 print("Escolha a formação:")
 for i in range(len(formacoes)):
     print(f"{i+1}- {formacoes[i]}")
 
 escolha = int(input())
-'''
-escolha = 5
+
 formacao = formacoes[escolha-1]
 formacao_list = formacao.split("-")
 
