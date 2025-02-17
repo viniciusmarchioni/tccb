@@ -1,7 +1,8 @@
 __pycache__/
 .venv/
 teste.py
-
+teste2.py
+apiTeste.py
 *.txt
 
 .env
