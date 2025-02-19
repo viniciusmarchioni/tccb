@@ -1,10 +1,11 @@
 import mysql.connector
 from flask import Flask, jsonify, request
 from fetchDBHelper import *
+from flask_cors import CORS
 
 
 app = Flask(__name__)
-
+CORS(app)
 #TODO adicionar jogadores sem formação
 @app.route("/jogadores/<id>/<formacao>", methods=["GET"])
 def get_jogadores(id,formacao):
