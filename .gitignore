@@ -1,8 +1,7 @@
 __pycache__/
 .venv/
-teste.py
-teste2.py
-apiTeste.py
+*csv*
 *.txt
-
+*.csv
+teste*
 .env
