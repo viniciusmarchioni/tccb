@@ -475,6 +475,7 @@ def testeJogadorForm(id, form):
     nome = jogador_info.nome
 
     return jsonify({
+        "partidas_jogadas": qtd_partidas,
         "nome": nome,
         "nome_time": nome_time,
         "nota": nota,

@@ -813,7 +813,7 @@ def estatisticas_formacao_favorita(id_jogador):
     if (result[1] > 3):
         estatisticas = PlayerStats()
         estatisticas.arr(result)
-        qtd_partidas = result[1]
+        qtd_partidas = int(result[1])
         formacao_favorita = result[0]
         return estatisticas, formacao_favorita, qtd_partidas
 
