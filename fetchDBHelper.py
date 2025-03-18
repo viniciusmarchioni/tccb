@@ -8,14 +8,16 @@ config = {
     'database': os.getenv("DATABASE")
 }
 
+
 class Time:
-    def __init__(self,id:int,nome:str):
+    def __init__(self, id: int, nome: str):
         self.id = id
         self.nome = nome
 
+
 class PlayerStats:
     def __init__(self, **kwargs):
-        self.nota = kwargs.get('nota',0)
+        self.nota = kwargs.get('nota', 0)
         self.impedimentos = kwargs.get('impedimentos', 0)
         self.chutes = kwargs.get('chutes', 0)
         self.chutes_no_gol = kwargs.get('chutes_no_gol', 0)
@@ -39,7 +41,7 @@ class PlayerStats:
         self.cartoes_amarelos = kwargs.get('cartoes_amarelos', 0)
         self.cartoes_vermelhos = kwargs.get('cartoes_vermelhos', 0)
         self.penaltis_cometidos = kwargs.get('penaltis_cometidos', 0)
-    
+
     def arr(self, array):
         self.nota = para_float(array[2])
         self.impedimentos = para_int(array[3])
@@ -69,6 +71,7 @@ class PlayerStats:
     def __repr__(self):
         return str(self.__dict__)
 
+
 class Stats:
     def __init__(self, **kwargs):
         self.impedimentos_avg = kwargs.get('impedimentos', 0)
@@ -94,7 +97,7 @@ class Stats:
         self.cartoes_amarelos_avg = kwargs.get('cartoes_amarelos', 0)
         self.cartoes_vermelhos_avg = kwargs.get('cartoes_vermelhos', 0)
         self.penaltis_cometidos_avg = kwargs.get('penaltis_cometidos', 0)
-    
+
     def arr(self, array):
         self.impedimentos_avg = para_float(array[0])
         self.chutes_avg = para_float(array[1])
@@ -134,16 +137,17 @@ class players:
 
     def __repr__(self):
         return self.__str__()
-    
+
+
 class playersPlus:
-    def __init__(self, id: int, nome: str, imagem:str, nacionalidade:str, data_nacimento:str, lesionado:bool, id_time:int):
+    def __init__(self, id: int, nome: str, imagem: str, nacionalidade: str, data_nacimento: str, lesionado: bool, id_time: int):
         self.id = id
         self.nome = nome
         self.imagem = imagem
         self.nacionalidade = nacionalidade
         self.data_nacimento = data_nacimento
         self.lesionado = lesionado
-        self.id_time=id_time
+        self.id_time = id_time
 
     def __str__(self):
         return self.nome
@@ -151,25 +155,28 @@ class playersPlus:
     def __repr__(self):
         return self.__str__()
 
+
 class JogadorTime:
-    def __init__(self, id: int, nome: str, imagem:str, nometime:str):
+    def __init__(self, id: int, nome: str, imagem: str, nometime: str):
         self.id = id
         self.nome = nome
         self.imagem = imagem
         self.nometime = nometime
 
+
 class Jogador:
-    def __init__(self, id: int, nome: str,nacionalidade:str, imagem:str,data_nascimento: str,lesionado: bool,id_time:int, nometime:str):
+    def __init__(self, id: int, nome: str, nacionalidade: str, imagem: str, data_nascimento: str, lesionado: bool, id_time: int, nometime: str):
         self.id = id
         self.nome = nome
         self.nacionalidade = nacionalidade
         self.imagem = imagem
         self.data_nascimento = data_nascimento
         self.lesionado = lesionado
-        self.id_time=id_time
+        self.id_time = id_time
         self.nometime = nometime
 
-def media_estatisticas(estatistica,posicao:str,formacao:str,minutos:int=0,idplayer:int=None):
+
+def media_estatisticas(estatistica, posicao: str, formacao: str, minutos: int = 0, idplayer: int = None):
     conn = mysql.connector.connect(**config)
     cursor = conn.cursor()
 
@@ -185,7 +192,7 @@ def media_estatisticas(estatistica,posicao:str,formacao:str,minutos:int=0,idplay
                    ''')
     media = cursor.fetchall()
     media = media[0][0]
-    if(idplayer!=None):
+    if (idplayer != None):
         cursor.execute(f'''
                         select avg({estatistica}) 
                         from estatisticas e
@@ -205,7 +212,8 @@ def media_estatisticas(estatistica,posicao:str,formacao:str,minutos:int=0,idplay
     conn.close()
     return media
 
-def fetch_players(id_time,formacao,position, limit:int = 1000):
+
+def fetch_players(id_time, formacao, position, limit: int = 1000):
     conn = mysql.connector.connect(**config)
     cursor = conn.cursor()
 
@@ -228,10 +236,11 @@ def fetch_players(id_time,formacao,position, limit:int = 1000):
     cursor.close()
     conn.close()
     for i in result:
-        jogadores.append(players(i[0],i[1]))
+        jogadores.append(players(i[0], i[1]))
     return jogadores
 
-def fetch_players_plus(id_time,formacao,position, limit:int = 1000):
+
+def fetch_players_plus(id_time, formacao, position, limit: int = 1000):
     conn = mysql.connector.connect(**config)
     cursor = conn.cursor()
 
@@ -259,48 +268,52 @@ def fetch_players_plus(id_time,formacao,position, limit:int = 1000):
     cursor.close()
     conn.close()
     for i in result:
-        jogadores.append(playersPlus(i[0],i[1],i[2],i[3],i[4],i[5],i[6]))
+        jogadores.append(playersPlus(i[0], i[1], i[2], i[3], i[4], i[5], i[6]))
     return jogadores
 
 
-
-def fetch_teams(apenas_serie_A:bool = False):
+def fetch_teams(apenas_serie_A: bool = False):
     conn = mysql.connector.connect(**config)
     cursor = conn.cursor()
-    if(not apenas_serie_A):
+    if (not apenas_serie_A):
         cursor.execute("select nome from times")
         times = cursor.fetchall()
         times = [item[0] for item in times]
         cursor.close()
         conn.close()
         return times
-    cursor.execute("select distinct nome from times t inner join partidas p on p.id_time_casa = t.id where Year(p.data) < YEAR(CURDATE())")
+    cursor.execute(
+        "select distinct nome from times t inner join partidas p on p.id_time_casa = t.id where Year(p.data) < YEAR(CURDATE())")
     times = cursor.fetchall()
     times = [item[0] for item in times]
     cursor.close()
     conn.close()
     return times
 
-def get_id(team_name:str):
+
+def get_id(team_name: str):
     conn = mysql.connector.connect(**config)
     cursor = conn.cursor()
-    cursor.execute('select id from times where nome=%s',(team_name,))
+    cursor.execute('select id from times where nome=%s', (team_name,))
     id_time = cursor.fetchall()[0][0]
     cursor.close()
     conn.close()
     return id_time
 
-def get_formations(team_id:int):
+
+def get_formations(team_id: int):
     conn = mysql.connector.connect(**config)
     cursor = conn.cursor()
-    cursor.execute(f"SELECT formacao_time_casa FROM partidas WHERE id_time_casa = {team_id} GROUP BY formacao_time_casa union select formacao_time_fora from partidas where id_time_fora={team_id} group by formacao_time_fora")
+    cursor.execute(
+        f"SELECT formacao_time_casa FROM partidas WHERE id_time_casa = {team_id} GROUP BY formacao_time_casa union select formacao_time_fora from partidas where id_time_fora={team_id} group by formacao_time_fora")
     formacoes = cursor.fetchall()
     formacoes = [item[0] for item in formacoes]
     cursor.close()
     conn.close()
     return formacoes
 
-def avg_team_goals_conceded(team_id:int,formation:str):
+
+def avg_team_goals_conceded(team_id: int, formation: str):
     conn = mysql.connector.connect(**config)
     cursor = conn.cursor()
     cursor.execute(f'''
@@ -329,9 +342,10 @@ def avg_team_goals_conceded(team_id:int,formation:str):
     desempenho_fora = [i[0] for i in result]
     cursor.close()
     conn.close()
-    return desempenho_casa[0],desempenho_fora[0]
+    return desempenho_casa[0], desempenho_fora[0]
 
-def avg_goals_conceded(formation:str):
+
+def avg_goals_conceded(formation: str):
     conn = mysql.connector.connect(**config)
     cursor = conn.cursor()
     cursor.execute(f'''
@@ -366,7 +380,8 @@ def avg_goals_conceded(formation:str):
     conn.close()
     return media_gols_sofridos
 
-def avg_goals_scored(team_id:int,formation:str):
+
+def avg_goals_scored(team_id: int, formation: str):
     conn = mysql.connector.connect(**config)
     cursor = conn.cursor()
     cursor.execute(f'''
@@ -379,7 +394,7 @@ def avg_goals_scored(team_id:int,formation:str):
         and e.id_time={team_id}
         group by e.id_partida ) as subquery
         ''')
-    
+
     desempenho_casa = cursor.fetchone()
 
     cursor.execute(f'''
@@ -395,9 +410,10 @@ def avg_goals_scored(team_id:int,formation:str):
     desempenho_fora = cursor.fetchone()
     cursor.close()
     conn.close()
-    return desempenho_casa[0],desempenho_fora[0]
+    return desempenho_casa[0], desempenho_fora[0]
 
-def avg_geral_stats(stat:str,formation:str):
+
+def avg_geral_stats(stat: str, formation: str):
     conn = mysql.connector.connect(**config)
     cursor = conn.cursor()
     cursor.execute(f'''
@@ -428,7 +444,8 @@ def avg_geral_stats(stat:str,formation:str):
     media = result[0][0]
     return media
 
-def avg_team_stats(id_team:int,stat:str,formation:str):
+
+def avg_team_stats(id_team: int, stat: str, formation: str):
     conn = mysql.connector.connect(**config)
     cursor = conn.cursor()
     cursor.execute(f'''
@@ -469,6 +486,7 @@ def para_float(value):
     except:
         return float(0)
 
+
 def para_int(value):
     try:
         value = int(value)
@@ -476,16 +494,17 @@ def para_int(value):
     except:
         return int(0)
 
-def media_estatisticas_plus(posicao:str,formacao:str,*estatisticas:str,minutos:int=0,idplayer:int=None):
+
+def media_estatisticas_plus(posicao: str, formacao: str, *estatisticas: str, minutos: int = 0, idplayer: int = None):
     conn = mysql.connector.connect(**config)
     cursor = conn.cursor()
 
     estatisticasql = ""
 
     for estatistica in estatisticas:
-        estatisticasql+=f"avg({estatistica}),"
+        estatisticasql += f"avg({estatistica}),"
 
-    if(idplayer!=None):
+    if (idplayer != None):
         cursor.execute(f'''
                         select {estatisticasql[:-1]}
                         from (select *
@@ -529,48 +548,53 @@ def media_estatisticas_plus(posicao:str,formacao:str,*estatisticas:str,minutos:i
                    ''')
     media = cursor.fetchall()
     media = media[0][0]
-    
+
     cursor.close()
     conn.close()
     return media
 
-def pesquisa_jogador(pesquisa:str):
+
+def pesquisa_jogador(pesquisa: str):
     conn = mysql.connector.connect(**config)
     cursor = conn.cursor()
 
-    cursor.execute(f"select j.id,j.nome,j.imagem, t.nome from jogadores j inner join times t on id_time = t.id where j.nome like '%{pesquisa}%' limit 50")
-    
+    cursor.execute(
+        f"select j.id,j.nome,j.imagem, t.nome from jogadores j inner join times t on id_time = t.id where j.nome like '%{pesquisa}%' limit 50")
+
     result = cursor.fetchall()
 
     jogadores = []
 
     for i in result:
-        jogadores.append(JogadorTime(i[0],i[1],i[2],i[3]))
+        jogadores.append(JogadorTime(i[0], i[1], i[2], i[3]))
 
     return jogadores
 
-def pesquisa_time(pesquisa:str):
+
+def pesquisa_time(pesquisa: str):
     conn = mysql.connector.connect(**config)
     cursor = conn.cursor()
 
-    cursor.execute(f"select id,nome from times t where nome like '%{pesquisa}%' limit 50")
-    
+    cursor.execute(
+        f"select id,nome from times t where nome like '%{pesquisa}%' limit 50")
+
     result = cursor.fetchall()
 
     times = []
 
     for i in result:
-        times.append(Time(i[0],i[1]))
+        times.append(Time(i[0], i[1]))
 
     return times
 
-def media_geral(posicao:str):
+
+def media_geral(posicao: str):
     conn = mysql.connector.connect(**config)
     cursor = conn.cursor()
 
-    if(posicao == "G"):
+    if (posicao == "G"):
         return []
-    elif(posicao == "D"):
+    elif (posicao == "D"):
         cursor.execute('''
         select avg(desarmes),avg(bloqueados),avg(interceptados) from estatisticas
         inner join partidas p
@@ -582,7 +606,7 @@ def media_geral(posicao:str):
                 ''')
         result = cursor.fetchall()
         return result[0]
-    elif(posicao == "M"):
+    elif (posicao == "M"):
         cursor.execute('''
         select avg(passes_certos),avg(assistencias),avg(passes_chaves) from estatisticas
         inner join partidas p
@@ -606,6 +630,7 @@ def media_geral(posicao:str):
                 ''')
         result = cursor.fetchall()
         return result[0]
+
 
 def todas_as_medias_geral(id_jogador):
     conn = mysql.connector.connect(**config)
@@ -641,9 +666,10 @@ def todas_as_medias_geral(id_jogador):
     on p.id = e.id_partida
     where id_jogador = %s
     and data < '2025-01-01'
-    ''',(id_jogador,))
+    ''', (id_jogador,))
     result = cursor.fetchone()
     print(result)
+
 
 def formacao_favorita_jogador(id_jogador):
     conn = mysql.connector.connect(**config)
@@ -670,21 +696,22 @@ def formacao_favorita_jogador(id_jogador):
     ) as sub
     group by formacao
     order by media_nota desc
-    ''',(id_jogador,id_jogador))
+    ''', (id_jogador, id_jogador))
 
     result = cursor.fetchone()
-    if(result[-1]>3):
+    if (result[-1] > 3):
         return result[0]
     save_result = result
     result = cursor.fetchone()
-    if(result[-1]>3):
+    if (result[-1] > 3):
         return result[0]
     else:
         print(save_result[1]-result[1])
-        if(save_result[1]-result[1]>0.3):
+        if (save_result[1]-result[1] > 0.3):
             return result[0]
         else:
             return save_result[0]
+
 
 def estatisticas_formacao_favorita(id_jogador):
     conn = mysql.connector.connect(**config)
@@ -780,38 +807,39 @@ def estatisticas_formacao_favorita(id_jogador):
     and p.id_time_fora = e.id_time
     group by formacao) as sub
     group by formacao
-    order by media_nota desc''',(id_jogador,id_jogador))
+    order by media_nota desc''', (id_jogador, id_jogador))
 
     result = cursor.fetchone()
-    if(result[1]>3):
+    if (result[1] > 3):
         estatisticas = PlayerStats()
         estatisticas.arr(result)
         qtd_partidas = result[1]
         formacao_favorita = result[0]
-        return estatisticas,formacao_favorita,qtd_partidas
-    
+        return estatisticas, formacao_favorita, qtd_partidas
+
     save_result = result
     result = cursor.fetchone()
-    if(result[1]>3):
+    if (result[1] > 3):
         estatisticas = PlayerStats()
         estatisticas.arr(result)
         qtd_partidas = int(result[1])
         formacao_favorita = result[0]
-        return estatisticas,formacao_favorita,qtd_partidas
-    
+        return estatisticas, formacao_favorita, qtd_partidas
+
     else:
-        if(save_result[2]-result[2]>0.3):
+        if (save_result[2]-result[2] > 0.3):
             estatisticas = PlayerStats()
             estatisticas.arr(result)
             qtd_partidas = int(result[1])
             formacao_favorita = result[0]
-            return estatisticas,formacao_favorita,qtd_partidas
+            return estatisticas, formacao_favorita, qtd_partidas
         else:
             estatisticas = PlayerStats()
             estatisticas.arr(save_result)
             qtd_partidas = int(save_result[1])
             formacao_favorita = save_result[0]
-            return estatisticas,formacao_favorita,qtd_partidas
+            return estatisticas, formacao_favorita, qtd_partidas
+
 
 def estatisticas_posicao_favorita(id_jogador):
     conn = mysql.connector.connect(**config)
@@ -914,17 +942,18 @@ def estatisticas_posicao_favorita(id_jogador):
     group by posicao) as sub
     group by posicao
     order by qtd_partidas desc
-    ''',(id_jogador,id_jogador))
-    
+    ''', (id_jogador, id_jogador))
+
     result = cursor.fetchone()
     estatisticas = PlayerStats()
     estatisticas.arr(result)
 
     posicao_favorita = result[0]
     qtd_partidas = int(result[1])
-    return estatisticas,posicao_favorita,qtd_partidas
+    return estatisticas, posicao_favorita, qtd_partidas
 
-def estatisticas_formacao_especifica(id_jogador,formacao):
+
+def estatisticas_formacao_especifica(id_jogador, formacao):
     conn = mysql.connector.connect(**config)
     cursor = conn.cursor()
     cursor.execute(f'''
@@ -1024,15 +1053,15 @@ def estatisticas_formacao_especifica(id_jogador,formacao):
     and p.formacao_time_fora = %s
     and p.id_time_fora = e.id_time) as sub
     group by formacao
-    ''',(id_jogador,formacao,id_jogador,formacao))
-
+    ''', (id_jogador, formacao, id_jogador, formacao))
 
     result = cursor.fetchone()
     estatisticas = PlayerStats()
     estatisticas.arr(result)
 
     qtd_partidas = int(result[1])
-    return estatisticas,qtd_partidas
+    return estatisticas, qtd_partidas
+
 
 def todas_as_estatisticas(id_jogador):
     conn = mysql.connector.connect(**config)
@@ -1129,14 +1158,15 @@ def todas_as_estatisticas(id_jogador):
     where id_jogador = %s
     and data < '2025-01-01'
     and minutos > 15
-    and p.id_time_fora = e.id_time) as sub''',(id_jogador,id_jogador))
+    and p.id_time_fora = e.id_time) as sub''', (id_jogador, id_jogador))
 
     result = cursor.fetchone()
     estatisticas = PlayerStats()
     estatisticas.arr(result)
 
     qtd_partidas = int(result[1])
-    return estatisticas,qtd_partidas
+    return estatisticas, qtd_partidas
+
 
 def get_info_jogador(id_jogador):
     conn = mysql.connector.connect(**config)
@@ -1147,7 +1177,7 @@ def get_info_jogador(id_jogador):
     inner join times t
     on j.id_time = t.id
     where j.id = %s''',
-    (id_jogador,))
+                   (id_jogador,))
 
     result = cursor.fetchone()
     id = result[0]
@@ -1158,9 +1188,11 @@ def get_info_jogador(id_jogador):
     lesionado = result[5]
     id_time = result[-2]
     nome_time = result[-1]
-    jogador = Jogador(id=id,nome=nome,nacionalidade=nacionalidade,imagem=imagem,data_nascimento=data_nascimento,lesionado=bool(lesionado),id_time=id_time,nometime=nome_time)
+    jogador = Jogador(id=id, nome=nome, nacionalidade=nacionalidade, imagem=imagem,
+                      data_nascimento=data_nascimento, lesionado=bool(lesionado), id_time=id_time, nometime=nome_time)
 
     return jogador
+
 
 def get_formacoes_jogador(id_jogador):
     conn = mysql.connector.connect(**config)
@@ -1180,7 +1212,7 @@ def get_formacoes_jogador(id_jogador):
     on p.id = id_partida
     where id_jogador = %s
     and p.id_time_fora = id_time
-    ''',(id_jogador,id_jogador))
+    ''', (id_jogador, id_jogador))
 
     result = cursor.fetchall()
 
@@ -1190,6 +1222,7 @@ def get_formacoes_jogador(id_jogador):
         formacoes.append(formacao[0])
 
     return formacoes
+
 
 def get_medias_total_posicao(posicao):
     conn = mysql.connector.connect(**config)
@@ -1221,7 +1254,7 @@ def get_medias_total_posicao(posicao):
     AVG(penaltis_cometidos) AS media_penaltis_cometidos from estatisticas
     where posicao = %s
     and minutos > 45
-    ''',(posicao,))
+    ''', (posicao,))
 
     result = cursor.fetchone()
     stats = Stats()

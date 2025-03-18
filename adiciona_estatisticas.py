@@ -4,16 +4,18 @@ import mysql.connector
 
 
 def checkNone(value):
-    if(value==None or value is None):
+    if (value == None or value is None):
         return 0
     else:
         return int(value)
 
+
 def checkNoneF(value):
-    if(value==None or value is None):
+    if (value == None or value is None):
         return 0
     else:
         return float(value)
+
 
 config = {
     'user': os.getenv("DB_USER"),
@@ -33,7 +35,7 @@ headers = {
 fixtures_url = f'https://v3.football.api-sports.io/fixtures/players'
 
 
-#Mude o valor de acordo com o campeonato desejado
+# Mude o valor de acordo com o campeonato desejado
 query = "SELECT id FROM partidas where id_campeonato = 475"
 cursor.execute(query)
 
@@ -43,21 +45,23 @@ result = [item[0] for item in rows]
 
 for i in result:
     fixtures_params = {
-        'fixture':i
+        'fixture': i
     }
 
-    response = requests.get(fixtures_url, headers=headers, params=fixtures_params)
+    response = requests.get(
+        fixtures_url, headers=headers, params=fixtures_params)
     fixtures = response.json()
 
     idmatch = fixtures['parameters']['fixture']
-        
+
     for team_data in fixtures['response']:
         teamID = int(team_data['team']['id'])
         for player_data in team_data['players']:
             player_name = player_data['player']['name']
             player_id = player_data['player']['id']
             player_foto = player_data['player']['photo']
-            cursor.execute("Insert ignore into jogadores(id,nome,imagem) values(%s,%s,%s)",(int(player_id),player_name,player_foto))
+            cursor.execute("Insert ignore into jogadores(id,nome,imagem) values(%s,%s,%s)", (int(
+                player_id), player_name, player_foto))
             print(f"Jogador: {player_name}")
             for stat in player_data['statistics']:
                 minutos = stat['games']['minutes']
@@ -122,11 +126,12 @@ for i in result:
                                         cartoes_vermelhos = VALUES(cartoes_vermelhos),
                                         penaltis_cometidos = VALUES(penaltis_cometidos),
                                         nota = values(nota);
-                                        '''
-                            ,(int(idmatch),teamID,int(player_id),checkNone(minutos),checkNone(numero),posicao,bool(capitao),bool(banco),checkNone(impedimentos),checkNone(chutes),checkNone(chutesNoGol),checkNone(gols),
-                                checkNone(golsTomados),checkNone(assistencias),checkNone(defesas),checkNone(passes),checkNone(passesChaves),checkNone(passesCertos),checkNone(desarmes),
-                                checkNone(bloqueios),checkNone(interceptacoes),checkNone(duelos),checkNone(duelosGanhos),checkNone(driblesAttempt),checkNone(driblesCompletos),
-                                checkNone(jogadoresPassados),checkNone(faltasSofridas),checkNone(faltasCometidas),checkNone(cartaoAmarelo),checkNone(cartaoVermelho),checkNone(penaltiCometido),checkNoneF(nota)))
+                                        ''', (int(idmatch), teamID, int(player_id), checkNone(minutos), checkNone(numero), posicao, bool(capitao), bool(banco), checkNone(impedimentos), checkNone(chutes), checkNone(chutesNoGol), checkNone(gols),
+                                              checkNone(golsTomados), checkNone(assistencias), checkNone(defesas), checkNone(
+                    passes), checkNone(passesChaves), checkNone(passesCertos), checkNone(desarmes),
+                    checkNone(bloqueios), checkNone(interceptacoes), checkNone(duelos), checkNone(
+                    duelosGanhos), checkNone(driblesAttempt), checkNone(driblesCompletos),
+                    checkNone(jogadoresPassados), checkNone(faltasSofridas), checkNone(faltasCometidas), checkNone(cartaoAmarelo), checkNone(cartaoVermelho), checkNone(penaltiCometido), checkNoneF(nota)))
 conn.commit()
 cursor.close()
 conn.close()
