@@ -10,9 +10,10 @@ config = {
 
 
 class Time:
-    def __init__(self, id: int, nome: str):
+    def __init__(self, id: int, nome: str, logo:str):
         self.id = id
         self.nome = nome
+        self.logo = logo
 
 
 class PlayerStats:
@@ -576,14 +577,14 @@ def pesquisa_time(pesquisa: str):
     cursor = conn.cursor()
 
     cursor.execute(
-        f"select id,nome from times t where nome like '%{pesquisa}%' limit 50")
+        f"select id,nome,logo from times t where nome like '%{pesquisa}%' limit 50")
 
     result = cursor.fetchall()
 
     times = []
 
     for i in result:
-        times.append(Time(i[0], i[1]))
+        times.append(Time(i[0], i[1], i[2]))
 
     return times
 
@@ -956,104 +957,50 @@ def estatisticas_posicao_favorita(id_jogador):
 def estatisticas_formacao_especifica(id_jogador, formacao):
     conn = mysql.connector.connect(**config)
     cursor = conn.cursor()
-    cursor.execute(f'''
-    select formacao,sum(qtd_partida) as qtd_partidas,avg(media_nota) as media_nota,
-    SUM(soma_impedimentos) AS soma_impedimentos,
-    SUM(soma_chutes) AS soma_chutes,
-    SUM(soma_chutes_no_gol) AS soma_chutes_no_gol,
-    SUM(soma_gols) AS soma_gols,
-    SUM(soma_gols_sofridos) AS soma_gols_sofridos,
-    SUM(soma_assistencias) AS soma_assistencias,
-    SUM(soma_defesas) AS soma_defesas,
-    SUM(soma_passes) AS soma_passes,
-    SUM(soma_passes_chaves) AS soma_passes_chaves,
-    SUM(soma_passes_certos) AS soma_passes_certos,
-    SUM(soma_desarmes) AS soma_desarmes,
-    SUM(soma_bloqueados) AS soma_bloqueados,
-    SUM(soma_interceptados) AS soma_interceptados,
-    SUM(soma_duelos) AS soma_duelos,
-    SUM(soma_duelos_ganhos) AS soma_duelos_ganhos,
-    SUM(soma_dribles_tentados) AS soma_dribles_tentados,
-    SUM(soma_dribles_completos) AS soma_dribles_completos,
-    SUM(soma_jogadores_passados) AS soma_jogadores_passados,
-    SUM(soma_faltas_sofridas) AS soma_faltas_sofridas,
-    SUM(soma_faltas_cometidas) AS soma_faltas_cometidas,
-    SUM(soma_cartoes_amarelos) AS soma_cartoes_amarelos,
-    SUM(soma_cartoes_vermelhos) AS soma_cartoes_vermelhos,
-    SUM(soma_penaltis_cometidos) AS soma_penaltis_cometidos
-
-    from (
-    select formacao_time_casa as formacao,avg(nota) as media_nota,count(id_partida) as qtd_partida ,
-    SUM(impedimentos) AS soma_impedimentos,
-    SUM(chutes) AS soma_chutes,
-    SUM(chutes_no_gol) AS soma_chutes_no_gol,
-    SUM(gols) AS soma_gols,
-    SUM(gols_sofridos) AS soma_gols_sofridos,
-    SUM(assistencias) AS soma_assistencias,
-    SUM(defesas) AS soma_defesas,
-    SUM(passes) AS soma_passes,
-    SUM(passes_chaves) AS soma_passes_chaves,
-    SUM(passes_certos) AS soma_passes_certos,
-    SUM(desarmes) AS soma_desarmes,
-    SUM(bloqueados) AS soma_bloqueados,
-    SUM(interceptados) AS soma_interceptados,
-    SUM(duelos) AS soma_duelos,
-    SUM(duelos_ganhos) AS soma_duelos_ganhos,
-    SUM(dribles_tentados) AS soma_dribles_tentados,
-    SUM(dribles_completos) AS soma_dribles_completos,
-    SUM(jogadores_passados) AS soma_jogadores_passados,
-    SUM(faltas_sofridas) AS soma_faltas_sofridas,
-    SUM(faltas_cometidas) AS soma_faltas_cometidas,
-    SUM(cartoes_amarelos) AS soma_cartoes_amarelos,
-    SUM(cartoes_vermelhos) AS soma_cartoes_vermelhos,
-    SUM(penaltis_cometidos) AS soma_penaltis_cometidos
-    from estatisticas e
-    inner join partidas p
-    on p.id = e.id_partida
-    where id_jogador = %s
-    and data < '2025-01-01'
-    and p.id_time_casa = e.id_time
-                       and minutos > 15
-
-    and p.formacao_time_casa = %s
-
-    union
-
-    select formacao_time_fora as formacao,avg(nota) as media_nota,count(id_partida) as qtd_partida ,
-    SUM(impedimentos) AS soma_impedimentos,
-    SUM(chutes) AS soma_chutes,
-    SUM(chutes_no_gol) AS soma_chutes_no_gol,
-    SUM(gols) AS soma_gols,
-    SUM(gols_sofridos) AS soma_gols_sofridos,
-    SUM(assistencias) AS soma_assistencias,
-    SUM(defesas) AS soma_defesas,
-    SUM(passes) AS soma_passes,
-    SUM(passes_chaves) AS soma_passes_chaves,
-    SUM(passes_certos) AS soma_passes_certos,
-    SUM(desarmes) AS soma_desarmes,
-    SUM(bloqueados) AS soma_bloqueados,
-    SUM(interceptados) AS soma_interceptados,
-    SUM(duelos) AS soma_duelos,
-    SUM(duelos_ganhos) AS soma_duelos_ganhos,
-    SUM(dribles_tentados) AS soma_dribles_tentados,
-    SUM(dribles_completos) AS soma_dribles_completos,
-    SUM(jogadores_passados) AS soma_jogadores_passados,
-    SUM(faltas_sofridas) AS soma_faltas_sofridas,
-    SUM(faltas_cometidas) AS soma_faltas_cometidas,
-    SUM(cartoes_amarelos) AS soma_cartoes_amarelos,
-    SUM(cartoes_vermelhos) AS soma_cartoes_vermelhos,
-    SUM(penaltis_cometidos) AS soma_penaltis_cometidos
-    from estatisticas e
-    inner join partidas p
-    on p.id = e.id_partida
-    where id_jogador = %s
-    and data < '2025-01-01'
-                       and minutos > 15
-
-    and p.formacao_time_fora = %s
-    and p.id_time_fora = e.id_time) as sub
-    group by formacao
-    ''', (id_jogador, formacao, id_jogador, formacao))
+    cursor.execute('''
+    SELECT 
+        formacao,
+        COUNT(*) AS qtd_partidas,
+        AVG(nota) AS media_nota,
+        SUM(impedimentos) AS soma_impedimentos,
+        SUM(chutes) AS soma_chutes,
+        SUM(chutes_no_gol) AS soma_chutes_no_gol,
+        SUM(gols) AS soma_gols,
+        SUM(gols_sofridos) AS soma_gols_sofridos,
+        SUM(assistencias) AS soma_assistencias,
+        SUM(defesas) AS soma_defesas,
+        SUM(passes) AS soma_passes,
+        SUM(passes_chaves) AS soma_passes_chaves,
+        SUM(passes_certos) AS soma_passes_certos,
+        SUM(desarmes) AS soma_desarmes,
+        SUM(bloqueados) AS soma_bloqueados,
+        SUM(interceptados) AS soma_interceptados,
+        SUM(duelos) AS soma_duelos,
+        SUM(duelos_ganhos) AS soma_duelos_ganhos,
+        SUM(dribles_tentados) AS soma_dribles_tentados,
+        SUM(dribles_completos) AS soma_dribles_completos,
+        SUM(jogadores_passados) AS soma_jogadores_passados,
+        SUM(faltas_sofridas) AS soma_faltas_sofridas,
+        SUM(faltas_cometidas) AS soma_faltas_cometidas,
+        SUM(cartoes_amarelos) AS soma_cartoes_amarelos,
+        SUM(cartoes_vermelhos) AS soma_cartoes_vermelhos,
+        SUM(penaltis_cometidos) AS soma_penaltis_cometidos
+    FROM (
+        SELECT 
+            CASE 
+                WHEN e.id_time = p.id_time_casa THEN COALESCE(p.formacao_time_casa, %s)
+                ELSE COALESCE(p.formacao_time_fora, %s)
+            END AS formacao,
+            e.*
+        FROM estatisticas e
+        INNER JOIN partidas p ON p.id = e.id_partida
+        WHERE e.id_jogador = %s
+            AND p.data < '2025-01-01'
+            AND e.minutos > 15
+    ) AS stats
+    WHERE formacao = %s
+    GROUP BY formacao;
+    ''', (formacao, formacao, id_jogador, formacao))
 
     result = cursor.fetchone()
     estatisticas = PlayerStats()
@@ -1204,6 +1151,7 @@ def get_formacoes_jogador(id_jogador):
     on p.id = id_partida
     where id_jogador = %s
     and p.id_time_casa = id_time
+    and minutos > 15                        
 
     union
 
@@ -1212,6 +1160,7 @@ def get_formacoes_jogador(id_jogador):
     on p.id = id_partida
     where id_jogador = %s
     and p.id_time_fora = id_time
+    and minutos > 15
     ''', (id_jogador, id_jogador))
 
     result = cursor.fetchall()
@@ -1260,3 +1209,74 @@ def get_medias_total_posicao(posicao):
     stats = Stats()
     stats.arr(result)
     return stats
+
+
+def get_destaques(id, formacao=None):
+    conn = mysql.connector.connect(**config)
+    cursor = conn.cursor()
+
+    if (formacao != None):
+        cursor.execute('''
+        select nota,id_time_casa,id_time_fora,t.logo,t2.logo from (select * from estatisticas 
+        inner join partidas p
+        on p.id = id_partida
+        where id_jogador = %s
+        and id_time_casa = id_time
+        and formacao_time_casa = %s
+
+        union 
+
+        select * from estatisticas 
+        inner join partidas p
+        on p.id = id_partida
+        where id_jogador = %s
+        and id_time_fora = id_time
+        and formacao_time_fora = %s
+        ) as sub
+
+        inner join times t
+        on id_time_casa = t.id
+        inner join times t2
+        on id_time_fora = t2.id
+
+        order by nota desc
+        limit 3
+        ''', (id, formacao, id, formacao))
+    else:
+        cursor.execute('''
+        select nota,id_time_casa,id_time_fora,t.logo,t2.logo from (select * from estatisticas 
+        inner join partidas p
+        on p.id = id_partida
+        where id_jogador = %s
+        and id_time_casa = id_time
+
+        union 
+
+        select * from estatisticas 
+        inner join partidas p
+        on p.id = id_partida
+        where id_jogador = %s
+        and id_time_fora = id_time
+        ) as sub
+
+        inner join times t
+        on id_time_casa = t.id
+        inner join times t2
+        on id_time_fora = t2.id
+
+        order by nota desc
+        limit 3
+        ''', (id, id))
+
+    result = cursor.fetchall()
+    destaques = []
+    for i in result:
+        destaques.append({
+            "nota": i[0],
+            "logo_mandante": i[3],
+            "logo_visitante": i[4],
+        })
+    return destaques
+
+
+estatisticas_formacao_especifica(10007, "3-4-3")

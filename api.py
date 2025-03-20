@@ -408,7 +408,8 @@ def testeJogador(id):
         "nacionalidade": nacionalidade,
         "data_nascimento": data_nascimento,
         "lesionado": lesionado,
-        "id_time": id_time, })
+        "id_time": id_time,
+        "destaques":get_destaques(id) })
 
 
 @app.route("/teste/form/<id>/<form>", methods=["GET"])
@@ -479,7 +480,8 @@ def testeJogadorForm(id, form):
         "nome": nome,
         "nome_time": nome_time,
         "nota": nota,
-        "estatisticas": estatisticas})
+        "estatisticas": estatisticas,
+        "destaques":get_destaques(id,form)})
 
 
 @app.route("/teste/pos", methods=["GET"])
