@@ -7,6 +7,81 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app)
 
+def getbool(str):
+    if(str == "true" or str == "True"):
+        return True
+    else:
+        return False
+
+
+@app.route("/jogadores/<id>", methods=["GET"])
+def get_info_time(id):
+
+    formacao = get_formations(id)
+
+    if (formacao == []):
+        return jsonify(), 404
+
+    # transforma em uma lista de inteiros
+    formacao_list = list(map(int, formacao[0].split('-')))
+    goleiros = []
+    defensores = []
+    meias = []
+    atacantes = []
+
+    for i in fetch_players_plus(id, formacao[0], "G", 1):
+        goleiros.append(i.__dict__)
+
+    for i in fetch_players_plus(id, formacao[0], "D", formacao_list[0]):
+        defensores.append(i)
+
+    for i in fetch_players_plus(id, formacao[0], "M", sum(map(int, formacao_list[1:-1]))):
+        meias.append(i)
+
+    for i in fetch_players_plus(id, formacao[0], "F", formacao_list[-1]):
+        atacantes.append(i)
+
+    return jsonify({
+        "aproveitamento": get_aproveitamento(id,formacao[0]),
+        "formações": formacao,
+        "goleiro": [i for i in goleiros],
+        "defensores": [i.__dict__ for i in defensores],
+        "meias": [i.__dict__ for i in meias],
+        "atacantes": [i.__dict__ for i in atacantes]
+    }), 200
+
+
+@app.route("/times/teste/<id>/<formacao>", methods=["GET"])
+def get_jogadores_formacao(id, formacao):
+
+    # transforma em uma lista de inteiros
+    formacao_list = list(map(int, formacao.split('-')))
+
+    goleiros = []
+    defensores = []
+    meias = []
+    atacantes = []
+
+    for i in fetch_players_plus(id, formacao, "G", 1):
+        goleiros.append(i.__dict__)
+
+    for i in fetch_players_plus(id, formacao, "D", formacao_list[0]):
+        defensores.append(i)
+
+    for i in fetch_players_plus(id, formacao, "M", sum(map(int, formacao_list[1:-1]))):
+        meias.append(i)
+
+    for i in fetch_players_plus(id, formacao, "F", formacao_list[-1]):
+        atacantes.append(i)
+
+    return jsonify({
+        "aproveitamento": get_aproveitamento(id,formacao),
+        "goleiro": [i for i in goleiros],
+        "defensores": [i.__dict__ for i in defensores],
+        "meias": [i.__dict__ for i in meias],
+        "atacantes": [i.__dict__ for i in atacantes]
+    }), 200
+
 
 @app.route("/jogadores/<id>/<formacao>", methods=["GET"])
 def get_jogadores(id, formacao):
@@ -213,8 +288,27 @@ def pesquisa(pesquisa):
 
 @app.route("/medias/", methods=["GET"])
 def get_media():
-    media_gols = media_geral("F")[0]
-    return jsonify({"mediaGols": media_gols})
+    media_atacantes = media_geral("F")
+    media_atacantes = {
+        "estatistica1": float(media_atacantes[0]),
+        "estatistica2": float(media_atacantes[1]),
+        "estatistica3": float(media_atacantes[1]),
+    }
+
+    media_meias = media_geral("M")
+    media_meias = {
+        "estatistica1": float(media_meias[0]),
+        "estatistica2": float(media_meias[1]),
+        "estatistica3": float(media_meias[1]),
+    }
+
+    media_defensores = media_geral("D")
+    media_defensores = {
+        "estatistica1": float(media_defensores[0]),
+        "estatistica2": float(media_defensores[1]),
+        "estatistica3": float(media_defensores[1]),
+    }
+    return jsonify({"media_atacantes": media_atacantes, "media_meias": media_meias, "media_defensores": media_defensores})
 
 
 @app.route("/teste/<id>", methods=["GET"])
@@ -409,7 +503,7 @@ def testeJogador(id):
         "data_nascimento": data_nascimento,
         "lesionado": lesionado,
         "id_time": id_time,
-        "destaques":get_destaques(id) })
+        "destaques": get_destaques(id)})
 
 
 @app.route("/teste/form/<id>/<form>", methods=["GET"])
@@ -481,7 +575,7 @@ def testeJogadorForm(id, form):
         "nome_time": nome_time,
         "nota": nota,
         "estatisticas": estatisticas,
-        "destaques":get_destaques(id,form)})
+        "destaques": get_destaques(id, form)})
 
 
 @app.route("/teste/pos", methods=["GET"])
@@ -550,6 +644,25 @@ def get_media_pos(pos):
     stats = get_medias_total_posicao(pos)
 
     return jsonify(stats.__dict__)
+
+@app.route("/pesquisaavancada/", methods=["GET"])
+def get_pesquisa_avancada():
+    formatdict = {
+        "posicao": request.headers.get('posicao'),
+        "formacao": request.headers.get('formacao'),
+        "gols": getbool(request.headers.get('gols')),
+        "desarmes": getbool(request.headers.get('desarmes')),
+        "assistencias": getbool(request.headers.get('assistencias')),
+        "passes_certos": getbool(request.headers.get('passes_certos')),
+        "passes_chaves": getbool(request.headers.get('passes_chaves')),
+        "faltas_sofridas": getbool(request.headers.get('faltas_sofridas')),
+        "dribles_completos": getbool(request.headers.get('dribles_completos')),
+        "chutes_no_gol": getbool(request.headers.get('chutes_no_gol')),
+        "bloqueados": getbool(request.headers.get('bloqueados')),
+    }
+
+    result = pesquisa_avancada(formatdict)
+    return jsonify({"resultado":result})
 
 
 if __name__ == "__main__":

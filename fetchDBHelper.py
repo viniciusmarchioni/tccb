@@ -10,7 +10,7 @@ config = {
 
 
 class Time:
-    def __init__(self, id: int, nome: str, logo:str):
+    def __init__(self, id: int, nome: str, logo: str):
         self.id = id
         self.nome = nome
         self.logo = logo
@@ -141,13 +141,14 @@ class players:
 
 
 class playersPlus:
-    def __init__(self, id: int, nome: str, imagem: str, nacionalidade: str, data_nacimento: str, lesionado: bool, id_time: int):
+    def __init__(self, id: int, nome: str, imagem: str, nacionalidade: str, data_nascimento: str, lesionado: bool, id_time: int, estatisticas):
         self.id = id
         self.nome = nome
         self.imagem = imagem
         self.nacionalidade = nacionalidade
-        self.data_nacimento = data_nacimento
+        self.data_nacimento = data_nascimento
         self.lesionado = lesionado
+        self.estatisticas = estatisticas
         self.id_time = id_time
 
     def __str__(self):
@@ -182,12 +183,12 @@ def media_estatisticas(estatistica, posicao: str, formacao: str, minutos: int = 
     cursor = conn.cursor()
 
     cursor.execute(f'''
-                   select avg({estatistica}) 
-                    from estatisticas e 
-                    inner join partidas p 
-                    on E.id_partida = P.id 
-                    where e.posicao="{posicao}" 
-                    and (p.formacao_time_casa="{formacao}" or p.formacao_time_fora="{formacao}") 
+                   select avg({estatistica})
+                    from estatisticas e
+                    inner join partidas p
+                    on E.id_partida = P.id
+                    where e.posicao="{posicao}"
+                    and (p.formacao_time_casa="{formacao}" or p.formacao_time_fora="{formacao}")
                     and minutos>{minutos}
                     and p.id_campeonato = 71
                    ''')
@@ -195,13 +196,13 @@ def media_estatisticas(estatistica, posicao: str, formacao: str, minutos: int = 
     media = media[0][0]
     if (idplayer != None):
         cursor.execute(f'''
-                        select avg({estatistica}) 
+                        select avg({estatistica})
                         from estatisticas e
-                        inner join partidas p 
-                        on e.id_partida = p.id 
-                        where e.posicao="{posicao}" 
+                        inner join partidas p
+                        on e.id_partida = p.id
+                        where e.posicao="{posicao}"
                         and minutos>{minutos}
-                        and (p.formacao_time_casa="{formacao}" or p.formacao_time_fora="{formacao}") 
+                        and (p.formacao_time_casa="{formacao}" or p.formacao_time_fora="{formacao}")
                         and e.id_jogador={idplayer}
                         ''')
         mediajogador = cursor.fetchall()
@@ -214,62 +215,48 @@ def media_estatisticas(estatistica, posicao: str, formacao: str, minutos: int = 
     return media
 
 
-def fetch_players(id_time, formacao, position, limit: int = 1000):
+def fetch_players_plus(id_time, formacao, posicao, limit: int = 1000):
     conn = mysql.connector.connect(**config)
     cursor = conn.cursor()
 
-    cursor.execute(f'''
-        SELECT nome, j.id FROM jogadores j
-        INNER JOIN estatisticas e ON e.id_jogador = j.id
-        INNER JOIN partidas p ON e.id_partida = p.ID
-        WHERE e.id_time = {id_time} 
-        AND e.posicao = "{position}"
-        AND (p.formacao_time_casa = "{formacao}"
-        OR p.formacao_time_fora = "{formacao}")
-        AND minutos > 0
-        GROUP BY id
-        ORDER BY SUM(minutos) DESC
-        LIMIT {limit}
-    ''')
-    result = cursor.fetchall()
-    jogadores = []
+    query_param = []
 
-    cursor.close()
-    conn.close()
-    for i in result:
-        jogadores.append(players(i[0], i[1]))
-    return jogadores
-
-
-def fetch_players_plus(id_time, formacao, position, limit: int = 1000):
-    conn = mysql.connector.connect(**config)
-    cursor = conn.cursor()
+    if (posicao == "D"):
+        query_param.append("AVG(duelos_ganhos),")
+        query_param.append("AVG(desarmes),")
+        query_param.append("AVG(bloqueados)")
+    elif (posicao == "M"):
+        query_param.append("AVG(passes_certos),")
+        query_param.append("AVG(assistencias),")
+        query_param.append("AVG(passes_chaves)")
+    else:
+        query_param.append("AVG(gols),")
+        query_param.append("AVG(assistencias),")
+        query_param.append("AVG(chutes_no_gol)")
 
     cursor.execute(f'''
-                        SELECT 
-                            j.id,j.nome,j.imagem,j.nacionalidade,j.data_nascimento,j.lesionado,j.id_time
-                        FROM
-                            jogadores j
-                                INNER JOIN
-                            estatisticas e ON e.id_jogador = j.id
-                                INNER JOIN
-                            partidas p ON e.id_partida = p.ID
-                        WHERE
-                            e.id_time = {id_time} AND e.posicao = '{position}'
-                                AND (p.formacao_time_casa = '{formacao}'
-                                OR p.formacao_time_fora = '{formacao}')
-                                AND minutos > 0
-                                GROUP BY id
-                                ORDER BY SUM(minutos) DESC
-                                LIMIT {limit}
-    ''')
+    SELECT id_jogador,j.nome, j.imagem, j.nacionalidade, j.data_nascimento,j.lesionado, SUM(minutos) as minutos, {query_param[0]+query_param[1]+query_param[2]}
+    FROM estatisticas e
+    INNER JOIN partidas p ON p.id = e.id_partida
+    INNER JOIN jogadores j ON j.id = e.id_jogador
+    WHERE
+        e.id_time = %s
+        AND j.id_time = e.id_time
+        AND (
+            (e.id_time = id_time_casa AND formacao_time_casa = %s)
+            OR
+            (e.id_time = id_time_fora AND formacao_time_fora = %s)
+        )
+        AND posicao = %s
+    GROUP BY id_jogador
+    ORDER BY minutos desc
+    LIMIT %s;
+    ''', (id_time, formacao, formacao, posicao, limit))
     result = cursor.fetchall()
     jogadores = []
-
-    cursor.close()
-    conn.close()
     for i in result:
-        jogadores.append(playersPlus(i[0], i[1], i[2], i[3], i[4], i[5], i[6]))
+        jogadores.append(playersPlus(
+            i[0], i[1], i[2], i[3], i[4], bool(i[5]), int(id_time), {'estatistica1': para_float(i[7]), 'estatistica2': para_float(i[8]), 'estatistica3': para_float(i[9])}))
     return jogadores
 
 
@@ -305,8 +292,13 @@ def get_id(team_name: str):
 def get_formations(team_id: int):
     conn = mysql.connector.connect(**config)
     cursor = conn.cursor()
-    cursor.execute(
-        f"SELECT formacao_time_casa FROM partidas WHERE id_time_casa = {team_id} GROUP BY formacao_time_casa union select formacao_time_fora from partidas where id_time_fora={team_id} group by formacao_time_fora")
+    cursor.execute('''
+                SELECT formacao_time_casa FROM partidas WHERE id_time_casa = %s and formacao_time_casa is not null
+                GROUP BY formacao_time_casa
+                union
+                select formacao_time_fora from partidas where id_time_fora= %s and formacao_time_fora is not null
+                group by formacao_time_fora;
+                ''', (team_id, team_id))
     formacoes = cursor.fetchall()
     formacoes = [item[0] for item in formacoes]
     cursor.close()
@@ -324,7 +316,7 @@ def avg_team_goals_conceded(team_id: int, formation: str):
             on e.id_partida=p.id
             where id_time_casa={team_id}
             and e.id_time={team_id}
-            and formacao_time_casa="{formation}" 
+            and formacao_time_casa="{formation}"
             and e.posicao="G" and minutos>0
         ''')
     result = cursor.fetchall()
@@ -336,7 +328,7 @@ def avg_team_goals_conceded(team_id: int, formation: str):
                 on e.id_partida=p.id
                 where id_time_fora={team_id}
                 and e.id_time={team_id}
-                and formacao_time_fora="{formation}" 
+                and formacao_time_fora="{formation}"
                 and e.posicao="G" and minutos>0
             ''')
     result = cursor.fetchall()
@@ -352,7 +344,7 @@ def avg_goals_conceded(formation: str):
     cursor.execute(f'''
                    select avg(gols_sofridos)
                     from (
-                    select gols_sofridos 
+                    select gols_sofridos
                     from estatisticas e
                     inner join partidas p
                     on p.id = e.id_partida
@@ -364,7 +356,7 @@ def avg_goals_conceded(formation: str):
 
                     union all
 
-                    select gols_sofridos 
+                    select gols_sofridos
                     from estatisticas e
                     inner join partidas p
                     on p.id = e.id_partida
@@ -510,9 +502,9 @@ def media_estatisticas_plus(posicao: str, formacao: str, *estatisticas: str, min
                         select {estatisticasql[:-1]}
                         from (select *
                         from estatisticas e
-                        inner join partidas p 
-                        on e.id_partida = p.id 
-                        where e.posicao="{posicao}" 
+                        inner join partidas p
+                        on e.id_partida = p.id
+                        where e.posicao="{posicao}"
                         and minutos>{minutos}
                         and p.formacao_time_casa="{formacao}"
                         and id_time = id_time_casa
@@ -522,9 +514,9 @@ def media_estatisticas_plus(posicao: str, formacao: str, *estatisticas: str, min
 
                         select *
                         from estatisticas e
-                        inner join partidas p 
-                        on e.id_partida = p.id 
-                        where e.posicao="{posicao}" 
+                        inner join partidas p
+                        on e.id_partida = p.id
+                        where e.posicao="{posicao}"
                         and minutos>{minutos}
                         and p.formacao_time_fora="{formacao}"
                         and id_time = id_time_fora
@@ -538,12 +530,12 @@ def media_estatisticas_plus(posicao: str, formacao: str, *estatisticas: str, min
         return [para_float(num) for num in mediajogador]
 
     cursor.execute(f'''
-                   select avg({estatisticas}) 
-                    from estatisticas e 
-                    inner join partidas p 
-                    on E.id_partida = P.id 
-                    where e.posicao="{posicao}" 
-                    and (p.formacao_time_casa="{formacao}" or p.formacao_time_fora="{formacao}") 
+                   select avg({estatisticas})
+                    from estatisticas e
+                    inner join partidas p
+                    on E.id_partida = P.id
+                    where e.posicao="{posicao}"
+                    and (p.formacao_time_casa="{formacao}" or p.formacao_time_fora="{formacao}")
                     and minutos>{minutos}
                     and p.id_campeonato = 71
                    ''')
@@ -600,8 +592,8 @@ def media_geral(posicao: str):
         select avg(desarmes),avg(bloqueados),avg(interceptados) from estatisticas
         inner join partidas p
         on p.id = id_partida
-        where minutos > 15 
-        and id_campeonato = 71 
+        where minutos > 15
+        and id_campeonato = 71
         and substituto = 0
         and posicao = 'D'
                 ''')
@@ -612,8 +604,8 @@ def media_geral(posicao: str):
         select avg(passes_certos),avg(assistencias),avg(passes_chaves) from estatisticas
         inner join partidas p
         on p.id = id_partida
-        where minutos > 15 
-        and id_campeonato = 71 
+        where minutos > 15
+        and id_campeonato = 71
         and substituto = 0
         and posicao = 'M'
                 ''')
@@ -624,8 +616,8 @@ def media_geral(posicao: str):
         select avg(gols),avg(chutes_no_gol),avg(assistencias) from estatisticas
         inner join partidas p
         on p.id = id_partida
-        where minutos > 15 
-        and id_campeonato = 71 
+        where minutos > 15
+        and id_campeonato = 71
         and substituto = 0
         and posicao = 'F'
                 ''')
@@ -958,7 +950,7 @@ def estatisticas_formacao_especifica(id_jogador, formacao):
     conn = mysql.connector.connect(**config)
     cursor = conn.cursor()
     cursor.execute('''
-    SELECT 
+    SELECT
         formacao,
         COUNT(*) AS qtd_partidas,
         AVG(nota) AS media_nota,
@@ -986,8 +978,8 @@ def estatisticas_formacao_especifica(id_jogador, formacao):
         SUM(cartoes_vermelhos) AS soma_cartoes_vermelhos,
         SUM(penaltis_cometidos) AS soma_penaltis_cometidos
     FROM (
-        SELECT 
-            CASE 
+        SELECT
+            CASE
                 WHEN e.id_time = p.id_time_casa THEN COALESCE(p.formacao_time_casa, %s)
                 ELSE COALESCE(p.formacao_time_fora, %s)
             END AS formacao,
@@ -1146,16 +1138,16 @@ def get_formacoes_jogador(id_jogador):
     cursor = conn.cursor()
 
     cursor.execute(f'''
-    select distinct formacao_time_casa from estatisticas 
+    select distinct formacao_time_casa from estatisticas
     inner join partidas p
     on p.id = id_partida
     where id_jogador = %s
     and p.id_time_casa = id_time
-    and minutos > 15                        
+    and minutos > 15
 
     union
 
-    select distinct formacao_time_fora from estatisticas 
+    select distinct formacao_time_fora from estatisticas
     inner join partidas p
     on p.id = id_partida
     where id_jogador = %s
@@ -1217,16 +1209,16 @@ def get_destaques(id, formacao=None):
 
     if (formacao != None):
         cursor.execute('''
-        select nota,id_time_casa,id_time_fora,t.logo,t2.logo from (select * from estatisticas 
+        select nota,id_time_casa,id_time_fora,t.logo,t2.logo from (select * from estatisticas
         inner join partidas p
         on p.id = id_partida
         where id_jogador = %s
         and id_time_casa = id_time
         and formacao_time_casa = %s
 
-        union 
+        union
 
-        select * from estatisticas 
+        select * from estatisticas
         inner join partidas p
         on p.id = id_partida
         where id_jogador = %s
@@ -1244,15 +1236,15 @@ def get_destaques(id, formacao=None):
         ''', (id, formacao, id, formacao))
     else:
         cursor.execute('''
-        select nota,id_time_casa,id_time_fora,t.logo,t2.logo from (select * from estatisticas 
+        select nota,id_time_casa,id_time_fora,t.logo,t2.logo from (select * from estatisticas
         inner join partidas p
         on p.id = id_partida
         where id_jogador = %s
         and id_time_casa = id_time
 
-        union 
+        union
 
-        select * from estatisticas 
+        select * from estatisticas
         inner join partidas p
         on p.id = id_partida
         where id_jogador = %s
@@ -1279,4 +1271,138 @@ def get_destaques(id, formacao=None):
     return destaques
 
 
-estatisticas_formacao_especifica(10007, "3-4-3")
+def get_aproveitamento(id, formacao):
+    conn = mysql.connector.connect(**config)
+    cursor = conn.cursor()
+
+    cursor.execute('''
+                   SELECT
+                        desempenho,
+                        COUNT(*) AS qtd
+                    FROM (
+                        SELECT
+                            id_partida,
+                            CASE
+                                WHEN SUM(gols) > SUM(gols_sofridos) THEN 1  -- Vitória
+                                WHEN SUM(gols) < SUM(gols_sofridos) THEN -1 -- Derrota
+                                ELSE 0  -- Empate
+                            END AS desempenho
+                        FROM estatisticas e
+                        INNER JOIN partidas p ON p.id = id_partida
+                        WHERE e.id_time = %s
+                        AND (
+                            (e.id_time = id_time_casa AND formacao_time_casa = %s)
+                            OR
+                            (e.id_time = id_time_fora AND formacao_time_fora = %s)
+                        )
+                        GROUP BY id_partida  -- Agrupa antes de aplicar a lógica do CASE
+                    ) AS subquery
+                    GROUP BY desempenho;
+                   ''', (id, formacao, formacao))
+
+    vitorias = 0
+    empates = 0
+    derrotas = 0
+
+    result = cursor.fetchall()
+    for i in result:
+        try:
+            if (i[0] == 1):
+                vitorias += i[1]
+            elif (i[0] == 0):
+                empates += i[1]
+            else:
+                derrotas += i[1]
+        except:
+            pass
+
+    return {"vitorias": vitorias, "empates": empates, "derrotas": derrotas}
+
+
+def pesquisa_avancada(formatdict):
+
+    try:
+        conn = mysql.connector.connect(**config)
+        cursor = conn.cursor()
+
+        filtros = [chave for chave, valor in formatdict.items()
+                   if valor is True]
+
+        posicao = formatdict.get("posicao", "")
+        formacao = formatdict.get("formacao", "")
+
+        # Construindo a parte da soma dinâmica
+        apoio = ""
+        if filtros:
+            apoio = ", SUM(" + " + ".join(filtros) + ") AS solicitacao"
+
+        if filtros == []:
+            apoio = ", avg("+ "e.nota"+") AS solicitacao"
+        # Construindo a query
+        query_build = f"""
+        SELECT
+            id_jogador, SUM(gols) AS gols, SUM(assistencias) AS assistencias, SUM(desarmes) AS desarmes,
+            SUM(passes_certos) AS passes_certos, SUM(passes_chaves) AS chances_criadas,
+            SUM(faltas_sofridas) AS faltas_sofridas, SUM(dribles_completos) AS dribles_completos,
+            SUM(chutes_no_gol) AS chutes_no_gol, SUM(bloqueados) AS bloqueios, COUNT(id_partida) AS partidas_jogadas, avg(nota) as nota
+            {apoio},
+            j.nome, j.imagem, t.nome
+        FROM estatisticas e
+        INNER JOIN partidas p ON p.id = e.id_partida
+        INNER JOIN jogadores j ON j.id = e.id_jogador
+        INNER JOIN times t ON t.id = j.id_time
+        WHERE TRUE
+        """
+
+        if formacao:
+            query_build += f"""
+            AND (
+                (e.id_time = id_time_casa AND formacao_time_casa = "{formacao}")
+                OR
+                (e.id_time = id_time_fora AND formacao_time_fora = "{formacao}")
+            )
+            """
+
+        if posicao:
+            query_build += f" AND posicao = '{posicao}'"
+
+        query_build += f"""
+        GROUP BY id_jogador
+        ORDER BY {"gols" if not apoio else "solicitacao"} DESC
+        LIMIT 20
+        """
+
+        # Executando a query
+        cursor.execute(query_build)
+        result = cursor.fetchall()
+
+        # Criando a lista de jogadores
+        jogadores = [
+            {
+                "id": i[0],
+                "gols": int(i[1]),
+                "assistencias": int(i[2]),
+                "desarmes": int(i[3]),
+                "passes_certos": int(i[4]),
+                "chances_criadas": int(i[5]),
+                "faltas_sofridas": int(i[6]),
+                "dribles_completos": int(i[7]),
+                "chutes_no_gol": int(i[8]),
+                "bloqueios": int(i[9]),
+                "partidas_jogadas": int(i[10]),
+                "nota": float(i[11]),
+                "solicitacao": float(i[12]) if apoio else None,
+                "nome": i[13],
+                "imagem": i[14],
+                "nomeTime": i[15],
+            }
+            for i in result
+        ]
+
+        return jogadores
+    except mysql.connector.Error as err:
+        print(f"Erro no banco de dados: {err}")
+    finally:
+        cursor.close()
+        conn.close()
+
