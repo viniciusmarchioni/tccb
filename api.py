@@ -2,13 +2,14 @@ import mysql.connector
 from flask import Flask, jsonify, request
 from fetchDBHelper import *
 from flask_cors import CORS
-
+from previsao_XGBoost import prever_resultado
 
 app = Flask(__name__)
 CORS(app)
 
+
 def getbool(str):
-    if(str == "true" or str == "True"):
+    if (str == "true" or str == "True"):
         return True
     else:
         return False
@@ -42,7 +43,7 @@ def get_info_time(id):
         atacantes.append(i)
 
     return jsonify({
-        "aproveitamento": get_aproveitamento(id,formacao[0]),
+        "aproveitamento": get_aproveitamento(id, formacao[0]),
         "formações": formacao,
         "goleiro": [i for i in goleiros],
         "defensores": [i.__dict__ for i in defensores],
@@ -75,7 +76,7 @@ def get_jogadores_formacao(id, formacao):
         atacantes.append(i)
 
     return jsonify({
-        "aproveitamento": get_aproveitamento(id,formacao),
+        "aproveitamento": get_aproveitamento(id, formacao),
         "goleiro": [i for i in goleiros],
         "defensores": [i.__dict__ for i in defensores],
         "meias": [i.__dict__ for i in meias],
@@ -645,6 +646,7 @@ def get_media_pos(pos):
 
     return jsonify(stats.__dict__)
 
+
 @app.route("/pesquisaavancada/", methods=["GET"])
 def get_pesquisa_avancada():
     formatdict = {
@@ -662,8 +664,30 @@ def get_pesquisa_avancada():
     }
 
     result = pesquisa_avancada(formatdict)
-    return jsonify({"resultado":result})
+    return jsonify({"resultado": result})
 
 
+@app.route("/ia/", methods=["POST"])
+def ia():
+    try:
+        req = request.get_json()
+
+        time_mandante = req['time_mandante']
+        time_visitante = req['time_visitante']
+        formacao_mandante = req['formacao_mandante']
+        formacao_visitante = req['formacao_visitante']
+        condicao = req['condicao']
+        momento_dia = req['momento_dia']
+
+        result = prever_resultado(time_mandante, time_visitante,
+                                  formacao_mandante, formacao_visitante, condicao, momento_dia)
+
+        return jsonify({'empate': float(result[0]),
+                        'mandante': float(result[1]),
+                        'visitante': float(result[2])
+                        }),200
+    except:
+        return jsonify(),500
+    
 if __name__ == "__main__":
     app.run(host='localhost', port=5000, debug=True)

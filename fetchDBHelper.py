@@ -1372,6 +1372,7 @@ def pesquisa_avancada(formatdict):
         LIMIT 20
         """
 
+        print(query_build)
         # Executando a query
         cursor.execute(query_build)
         result = cursor.fetchall()
