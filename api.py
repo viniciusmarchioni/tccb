@@ -685,9 +685,10 @@ def ia():
         return jsonify({'empate': float(result[0]),
                         'mandante': float(result[1]),
                         'visitante': float(result[2])
-                        }),200
+                        }), 200
     except:
-        return jsonify(),500
-    
+        return jsonify(), 500
+
+
 if __name__ == "__main__":
-	app.run(host='0.0.0.0', port=5000,ssl_context =("/etc/letsencrypt/live/corinthianspaulista1910.duckdns.org/fullchaillchain.pem","/etc/letsencrypt/live/corinthianspaulista1910.duckdns.org/privkey.pem"))
+    app.run(host='localhost', port=5000)

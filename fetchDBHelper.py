@@ -1339,7 +1339,7 @@ def pesquisa_avancada(formatdict):
             apoio = ", SUM(" + " + ".join(filtros) + ") AS solicitacao"
 
         if filtros == []:
-            apoio = ", avg("+ "e.nota"+") AS solicitacao"
+            apoio = ", avg(" + "e.nota"+") AS solicitacao"
         # Construindo a query
         query_build = f"""
         SELECT
@@ -1408,4 +1408,3 @@ def pesquisa_avancada(formatdict):
     finally:
         cursor.close()
         conn.close()
-
