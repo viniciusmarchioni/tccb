@@ -442,4 +442,4 @@ def ia():
 
 
 if __name__ == "__main__":
-    app.run(host='localhost', port=5000, debug=True)
+	app.run(host='0.0.0.0', port=5000,ssl_context =("/etc/letsencrypt/live/corinthianspaulista1910.duckdns.org/fullchaillchain.pem","/etc/letsencrypt/live/corinthianspaulista1910.duckdns.org/privkey.pem"))
