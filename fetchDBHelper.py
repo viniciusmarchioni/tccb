@@ -857,8 +857,7 @@ def pesquisa_avancada(formatdict):
         ORDER BY {"gols" if not apoio else "solicitacao"} DESC
         LIMIT 20
         """
-
-        print(query_build)
+        
         # Executando a query
         cursor.execute(query_build)
         result = cursor.fetchall()
