@@ -399,7 +399,7 @@ def pesquisa(pesquisa):
 
 
 @app.route("/pesquisaavancada/", methods=["GET"])
-def pesquisa_avancada():
+def obter_pesquisa_avancada():
     formatdict = {
         "posicao": request.headers.get('posicao'),
         "formacao": request.headers.get('formacao'),
@@ -413,7 +413,6 @@ def pesquisa_avancada():
         "chutes_no_gol": para_bool(request.headers.get('chutes_no_gol')),
         "bloqueados": para_bool(request.headers.get('bloqueados')),
     }
-
     result = pesquisa_avancada(formatdict)
     return jsonify({"resultado": result})
 
