@@ -480,6 +480,8 @@ def estatisticas_posicao_favorita(id_jogador):
 
     posicao_favorita = result[0]
     qtd_partidas = int(result[1])
+    cursor.close()
+    conn.close()
     return estatisticas, posicao_favorita, qtd_partidas
 
 
@@ -579,6 +581,8 @@ def todas_as_estatisticas(id_jogador):
     estatisticas.arr(result)
 
     qtd_partidas = int(result[1])
+    cursor.close()
+    conn.close()
     return estatisticas, qtd_partidas
 
 
@@ -604,7 +608,8 @@ def get_info_jogador(id_jogador):
     nome_time = result[-1]
     jogador = Jogador(id=id, nome=nome, nacionalidade=nacionalidade, imagem=imagem,
                       data_nascimento=data_nascimento, lesionado=bool(lesionado), id_time=id_time, nometime=nome_time)
-
+    cursor.close()
+    conn.close()
     return jogador
 
 
@@ -636,7 +641,8 @@ def get_formacoes_jogador(id_jogador):
 
     for formacao in result:
         formacoes.append(formacao[0])
-
+    cursor.close()
+    conn.close()
     return formacoes
 
 
@@ -675,6 +681,8 @@ def get_medias_total_posicao(posicao):
     result = cursor.fetchone()
     stats = Stats()
     stats.arr(result)
+    cursor.close()
+    conn.close()
     return stats
 
 
@@ -743,6 +751,8 @@ def get_destaques(id, formacao=None):
             "logo_mandante": i[3],
             "logo_visitante": i[4],
         })
+    cursor.close()
+    conn.close()
     return destaques
 
 
@@ -790,7 +800,8 @@ def get_aproveitamento(id, formacao):
                 derrotas += i[1]
         except:
             pass
-
+    cursor.close()
+    conn.close()
     return {"vitorias": vitorias, "empates": empates, "derrotas": derrotas}
 
 
@@ -874,7 +885,8 @@ def pesquisa_avancada(formatdict):
             }
             for i in result
         ]
-
+        cursor.close()
+        conn.close()
         return jogadores
     except mysql.connector.Error as err:
         print(f"Erro no banco de dados: {err}")
