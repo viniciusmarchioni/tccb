@@ -285,8 +285,11 @@ def media_geral(posicao: str):
         and id_campeonato = 71
         and substituto = 0
         and posicao = 'D'
+        limit 1;
                 ''')
         result = cursor.fetchone()
+        cursor.close()
+        conn.close()
         return result
     elif (posicao == "M"):
         cursor.execute('''
@@ -297,8 +300,11 @@ def media_geral(posicao: str):
         and id_campeonato = 71
         and substituto = 0
         and posicao = 'M'
+        limit 1;
                 ''')
         result = cursor.fetchone()
+        cursor.close()
+        conn.close()
         return result
     else:
         cursor.execute('''
@@ -309,8 +315,11 @@ def media_geral(posicao: str):
         and id_campeonato = 71
         and substituto = 0
         and posicao = 'F'
+        limit 1;
                 ''')
         result = cursor.fetchone()
+        cursor.close()
+        conn.close()
         return result
 
 
@@ -472,6 +481,7 @@ def estatisticas_posicao_favorita(id_jogador):
         SUM(penaltis_cometidos) AS soma_penaltis_cometidos from estatisticas
     where id_jogador = %s
     group by posicao
+    LIMIT 1;
     ''', (id_jogador,))
 
     result = cursor.fetchone()
@@ -531,6 +541,7 @@ def estatisticas_jogador_formacao_especifica(id_jogador, formacao):
     ) AS stats
     WHERE formacao = %s
     GROUP BY formacao;
+    LIMIT 1;
     ''', (formacao, formacao, id_jogador, formacao))
 
     result = cursor.fetchone()
@@ -574,6 +585,7 @@ def todas_as_estatisticas(id_jogador):
         SUM(cartoes_vermelhos) AS soma_cartoes_vermelhos,
         SUM(penaltis_cometidos) AS soma_penaltis_cometidos from estatisticas
     where id_jogador = %s
+    LIMIT 1;
     ''', (id_jogador,))
 
     result = cursor.fetchone()
@@ -594,7 +606,8 @@ def get_info_jogador(id_jogador):
     select j.id,j.nome,imagem,nacionalidade,data_nascimento,lesionado,id_time,t.nome from jogadores j
     inner join times t
     on j.id_time = t.id
-    where j.id = %s''',
+    where j.id = %s
+    LIMIT 1;''',
                    (id_jogador,))
 
     result = cursor.fetchone()
@@ -676,6 +689,7 @@ def get_medias_total_posicao(posicao):
     AVG(penaltis_cometidos) AS media_penaltis_cometidos from estatisticas
     where posicao = %s
     and minutos > 15
+    LIMIT 1;
     ''', (posicao,))
 
     result = cursor.fetchone()
