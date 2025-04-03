@@ -17,6 +17,18 @@ class Time:
         self.nome = nome
         self.logo = logo
 
+    @staticmethod
+    def time_por_id(id):
+        conn = mysql.connector.connect(**config)
+
+        with conn.cursor() as cursor:
+            cursor.execute(
+                '''select nome,logo from times where id = %s limit 1''', (id,))
+            result = cursor.fetchone()
+
+        conn.close()
+        return Time(int(id), result[0], result[1])
+
 
 class PlayerStats:
     def __init__(self, **kwargs):
@@ -215,6 +227,37 @@ def obter_jogadores(id_time, formacao, posicao, limit: int = 1000):
     return jogadores
 
 
+def obter_jogadores_em_destaque():
+    conn = mysql.connector.connect(**config)
+
+    with conn.cursor() as cursor:
+        cursor.execute('''
+        select j.id,j.nome,imagem,t.nome,avg(nota) as nota from estatisticas
+        inner join jogadores j
+        on j.id = id_jogador
+        inner join partidas p 
+        on id_partida = p.id
+        inner join times t
+        on t.id = j.id_time
+        where data > NOW() - INTERVAL 6 MONTH
+        group by id_jogador
+        order by nota desc
+        limit 5
+        ''')
+        result = cursor.fetchall()
+        jogadores = []
+
+        for i in result:
+            jogadores.append({
+                "id": int(i[0]),
+                "nome": i[1],
+                "imagem": i[2],
+                "nome_time": i[3],
+                "nota": float(i[4])
+            })
+    return jogadores
+
+
 def get_formations(team_id: int):
     conn = mysql.connector.connect(**config)
     cursor = conn.cursor()
@@ -237,7 +280,7 @@ def pesquisa_jogador(pesquisa: str):
     cursor = conn.cursor()
 
     cursor.execute(
-        f"select j.id,j.nome,j.imagem, t.nome from jogadores j inner join times t on id_time = t.id where j.nome like %s limit 10",(f"%{pesquisa}%",))
+        f"select j.id,j.nome,j.imagem, t.nome from jogadores j inner join times t on id_time = t.id where j.nome like %s limit 10", (f"%{pesquisa}%",))
 
     result = cursor.fetchall()
 
@@ -256,7 +299,7 @@ def pesquisa_time(pesquisa: str):
     cursor = conn.cursor()
 
     cursor.execute(
-        f"select id,nome,logo from times t where nome like %s limit 10",(f"%{pesquisa}%",))
+        f"select id,nome,logo from times t where nome like %s limit 10", (f"%{pesquisa}%",))
 
     result = cursor.fetchall()
 
@@ -846,7 +889,7 @@ def pesquisa_avancada(formatdict):
         ORDER BY {"gols" if not apoio else "solicitacao"} DESC
         LIMIT 20
         """
-        
+
         # Executando a query
         cursor.execute(query_build)
         result = cursor.fetchall()
@@ -880,6 +923,54 @@ def pesquisa_avancada(formatdict):
     finally:
         cursor.close()
         conn.close()
+
+
+def recupera_ultimas_partidas():
+    conn = mysql.connector.connect(**config)
+    with conn.cursor() as cursor:
+        cursor.execute('''
+        select * from (SELECT 
+            p.ID AS id_partida,
+            p.id_time_casa,
+            p.id_time_fora,
+            COALESCE(SUM(CASE WHEN e.id_time = p.id_time_casa THEN e.gols END), 0) AS gols_time_mandante,
+            COALESCE(SUM(CASE WHEN e.id_time = p.id_time_fora THEN e.gols END), 0) AS gols_time_visitante,
+            t.nome  as time_mandante,
+            t2.nome as time_visitante,
+            t.logo as logo_mandante,
+            t2.logo as logo_visitante,
+            data
+        FROM partidas p
+        LEFT JOIN estatisticas e ON p.ID = e.id_partida
+        inner join times t
+        on p.id_time_casa = t.id
+        inner join times t2
+        on p.id_time_fora = t2.id
+        GROUP BY p.ID, p.id_time_casa, p.id_time_fora
+        order by data desc
+        ) as sub
+        limit 10
+        ''')
+        result = cursor.fetchall()
+
+        jogos = []
+        for i in result:
+            jogos.append({
+                "mandante": {
+                    "nome": i[5],
+                    "logo": i[7],
+                    "gols": para_int(i[3]),
+                    "id": para_int(i[2]),
+                },
+                "visitante": {
+                    "nome": i[6],
+                    "logo": i[8],
+                    "gols": para_int(i[4]),
+                    "id": para_int(i[1]),
+                },
+                "data": i[9]
+            })
+        return jogos
 
 
 def para_float(value):

@@ -42,6 +42,7 @@ def obter_info_time(id):
         atacantes.append(i)
 
     return jsonify({
+        "info": Time.time_por_id(id).__dict__,
         "aproveitamento": get_aproveitamento(id, formacao[0]),
         "formações": formacao,
         "goleiro": [i for i in goleiros],
@@ -107,11 +108,17 @@ def obter_medias_jogadores():
     }
     return jsonify({"media_atacantes": media_atacantes, "media_meias": media_meias, "media_defensores": media_defensores})
 
+
 @app.route("/jogadores/medias/<posicao>", methods=["GET"])
 def obter_medias_posicao(posicao):
     stats = get_medias_total_posicao(posicao)
 
     return jsonify(stats.__dict__)
+
+
+@app.route("/jogadores/destaques", methods=["GET"])
+def obter_jogadores_destaque():
+    return jsonify({"jogadores": obter_jogadores_em_destaque()})
 
 
 @app.route("/jogadores/<id>", methods=["GET"])
@@ -438,6 +445,11 @@ def ia():
                         }), 200
     except:
         return jsonify(), 500
+
+
+@app.route("/jogos/ultimos", methods=["GET"])
+def obter_ultimos_jogos():
+    return jsonify({"jogos": recupera_ultimas_partidas()})
 
 
 if __name__ == "__main__":
