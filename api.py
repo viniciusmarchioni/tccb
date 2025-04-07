@@ -410,15 +410,15 @@ def obter_pesquisa_avancada():
     formatdict = {
         "posicao": request.headers.get('posicao'),
         "formacao": request.headers.get('formacao'),
-        "gols": para_bool(request.headers.get('gols')),
-        "desarmes": para_bool(request.headers.get('desarmes')),
-        "assistencias": para_bool(request.headers.get('assistencias')),
-        "passes_certos": para_bool(request.headers.get('passes_certos')),
-        "passes_chaves": para_bool(request.headers.get('passes_chaves')),
-        "faltas_sofridas": para_bool(request.headers.get('faltas_sofridas')),
-        "dribles_completos": para_bool(request.headers.get('dribles_completos')),
-        "chutes_no_gol": para_bool(request.headers.get('chutes_no_gol')),
-        "bloqueados": para_bool(request.headers.get('bloqueados')),
+        "gols": request.headers.get('gols'),
+        "desarmes": request.headers.get('desarmes'),
+        "assistencias": request.headers.get('assistencias'),
+        "passes_certos": request.headers.get('passes_certos'),
+        "passes_chaves": request.headers.get('passes_chaves'),
+        "faltas_sofridas": request.headers.get('faltas_sofridas'),
+        "dribles_completos": request.headers.get('dribles_completos'),
+        "chutes_no_gol": request.headers.get('chutes_no_gol'),
+        "bloqueados": request.headers.get('bloqueados'),
     }
     result = pesquisa_avancada(formatdict)
     return jsonify({"resultado": result})
@@ -451,6 +451,9 @@ def ia():
 def obter_ultimos_jogos():
     return jsonify({"jogos": recupera_ultimas_partidas()})
 
+@app.route("/jogos/proximos", methods=["GET"])
+def obter_proximos_jogos():
+    return jsonify({"jogos": []})
 
 if __name__ == "__main__":
 	app.run(host='0.0.0.0', port=5000,ssl_context =("/etc/letsencrypt/live/corinthianspaulista1910.duckdns.org/fullchaillchain.pem","/etc/letsencrypt/live/corinthianspaulista1910.duckdns.org/privkey.pem"))
