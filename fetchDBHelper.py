@@ -276,6 +276,24 @@ def get_formations(team_id: int):
 
 
 def pesquisa_jogador(pesquisa: str):
+    if(pesquisa == "Jogadores"):
+        conn = mysql.connector.connect(**config)
+        cursor = conn.cursor()
+
+        cursor.execute(
+            f"select j.id,j.nome,j.imagem, t.nome from jogadores j inner join times t on id_time = t.id limit 30")
+
+        result = cursor.fetchall()
+
+        jogadores = []
+
+        for i in result:
+            jogadores.append(JogadorTime(i[0], i[1], i[2], i[3]))
+
+        cursor.close()
+        conn.close()
+        return jogadores
+    
     conn = mysql.connector.connect(**config)
     cursor = conn.cursor()
 
@@ -295,6 +313,22 @@ def pesquisa_jogador(pesquisa: str):
 
 
 def pesquisa_time(pesquisa: str):
+    if(pesquisa == "Times"):
+        conn = mysql.connector.connect(**config)
+        cursor = conn.cursor()
+        cursor.execute(
+        f"select id,nome,logo from times t limit 30")
+        result = cursor.fetchall()
+
+        times = []
+
+        for i in result:
+            times.append(Time(i[0], i[1], i[2]))
+
+        cursor.close()
+        conn.close()
+        return times
+
     conn = mysql.connector.connect(**config)
     cursor = conn.cursor()
 
@@ -843,12 +877,17 @@ def pesquisa_avancada(formatdict):
         conn = mysql.connector.connect(**config)
         cursor = conn.cursor()
 
-        filtros = [chave for chave, valor in formatdict.items()
-                   if valor is True]
-
+        filtros = []
+        
+        for chave in formatdict:
+            print(formatdict[chave])
+            if(formatdict[chave]=="true"):
+                filtros.append(chave)
+        
         posicao = formatdict.get("posicao", "")
         formacao = formatdict.get("formacao", "")
 
+        print("Filtros: ",filtros)
         # Construindo a parte da soma dinâmica
         apoio = ""
         if filtros:
@@ -906,7 +945,7 @@ def pesquisa_avancada(formatdict):
                 "faltas_sofridas": int(i[6]),
                 "dribles_completos": int(i[7]),
                 "chutes_no_gol": int(i[8]),
-                "bloqueios": int(i[9]),
+                "bloqueados": int(i[9]),
                 "partidas_jogadas": int(i[10]),
                 "nota": float(i[11]),
                 "solicitacao": float(i[12]) if apoio else None,
