@@ -408,8 +408,8 @@ def pesquisa(pesquisa):
 @app.route("/pesquisaavancada/", methods=["GET"])
 def obter_pesquisa_avancada():
     formatdict = {
-        "posicao": request.headers.get('posicao'),
         "formacao": request.headers.get('formacao'),
+        "posicao": request.headers.get('posicao'),
         "gols": request.headers.get('gols'),
         "desarmes": request.headers.get('desarmes'),
         "assistencias": request.headers.get('assistencias'),
@@ -420,6 +420,11 @@ def obter_pesquisa_avancada():
         "chutes_no_gol": request.headers.get('chutes_no_gol'),
         "bloqueados": request.headers.get('bloqueados'),
     }
+
+    posicoes = {"Goleiro": "G", "Defensor": "D", "Meia": "M", "Atacante": "F","":""}
+
+    formatdict["posicao"] = posicoes[formatdict["posicao"]]
+
     result = pesquisa_avancada(formatdict)
     return jsonify({"resultado": result})
 
@@ -451,9 +456,11 @@ def ia():
 def obter_ultimos_jogos():
     return jsonify({"jogos": recupera_ultimas_partidas()})
 
+
 @app.route("/jogos/proximos", methods=["GET"])
 def obter_proximos_jogos():
     return jsonify({"jogos": []})
+
 
 if __name__ == "__main__":
     app.run(host='localhost', port=5000, debug=True)
