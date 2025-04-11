@@ -905,14 +905,12 @@ def pesquisa_avancada(formatdict):
         filtros = []
         
         for chave in formatdict:
-            print(formatdict[chave])
             if(formatdict[chave]=="true"):
                 filtros.append(chave)
         
         posicao = formatdict.get("posicao", "")
         formacao = formatdict.get("formacao", "")
 
-        print("Filtros: ",filtros)
         # Construindo a parte da soma dinâmica
         apoio = ""
         if filtros:
@@ -965,13 +963,13 @@ def pesquisa_avancada(formatdict):
                 "gols": int(i[1]),
                 "assistencias": int(i[2]),
                 "desarmes": int(i[3]),
-                "passes_certos": int(i[4]),
-                "chances_criadas": int(i[5]),
-                "faltas_sofridas": int(i[6]),
-                "dribles_completos": int(i[7]),
-                "chutes_no_gol": int(i[8]),
+                "passes-certos": int(i[4]),
+                "passes-chaves": int(i[5]),
+                "faltas-sofridas": int(i[6]),
+                "dribles-completos": int(i[7]),
+                "chutes-no-gol": int(i[8]),
                 "bloqueados": int(i[9]),
-                "partidas_jogadas": int(i[10]),
+                "partidas-jogadas": int(i[10]),
                 "nota": float(i[11]),
                 "solicitacao": float(i[12]) if apoio else None,
                 "nome": i[13],
