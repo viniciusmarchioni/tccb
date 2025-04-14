@@ -650,6 +650,7 @@ def todas_as_estatisticas(id_jogador):
         SUM(penaltis_cometidos) AS soma_penaltis_cometidos from estatisticas
     where id_jogador = %s
     and minutos > 0
+    limit 1
     ''', (id_jogador,))
 
     result = cursor.fetchone()
