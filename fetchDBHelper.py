@@ -662,7 +662,8 @@ def todas_as_estatisticas(id_jogador):
         SUM(cartoes_vermelhos) AS soma_cartoes_vermelhos,
         SUM(penaltis_cometidos) AS soma_penaltis_cometidos from estatisticas
     where id_jogador = %s
-    LIMIT 1;
+    and minutos > 0
+    limit 1
     ''', (id_jogador,))
 
     result = cursor.fetchone()
@@ -789,6 +790,7 @@ def get_destaques(id, formacao=None):
         where id_jogador = %s
         and id_time_casa = id_time
         and formacao_time_casa = %s
+        and minutos > 0
 
         union
 
@@ -798,6 +800,7 @@ def get_destaques(id, formacao=None):
         where id_jogador = %s
         and id_time_fora = id_time
         and formacao_time_fora = %s
+        and minutos > 0
         ) as sub
 
         inner join times t
@@ -1023,13 +1026,13 @@ def recupera_ultimas_partidas():
                     "nome": i[5],
                     "logo": i[7],
                     "gols": para_int(i[3]),
-                    "id": para_int(i[2]),
+                    "id": para_int(i[1]),
                 },
                 "visitante": {
                     "nome": i[6],
                     "logo": i[8],
                     "gols": para_int(i[4]),
-                    "id": para_int(i[1]),
+                    "id": para_int(i[2]),
                 },
                 "data": i[9]
             })
