@@ -459,7 +459,7 @@ def obter_ultimos_jogos():
 
 @app.route("/jogos/proximos", methods=["GET"])
 def obter_proximos_jogos():
-    return jsonify({"jogos": []})
+    return jsonify({"jogos": recupera_proximas_partidas()})
 
 
 if __name__ == "__main__":

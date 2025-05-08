@@ -1,7 +1,7 @@
 import os
 import requests
 import mysql.connector
-
+import time
 
 def checkNone(value):
     if (value == None or value is None):
@@ -36,7 +36,7 @@ fixtures_url = f'https://v3.football.api-sports.io/fixtures/players'
 
 
 # Mude o valor de acordo com o campeonato desejado
-query = "SELECT id FROM partidas where id_campeonato = 475"
+query = "SELECT id FROM partidas where id_campeonato = 71"
 cursor.execute(query)
 
 
@@ -60,8 +60,8 @@ for i in result:
             player_name = player_data['player']['name']
             player_id = player_data['player']['id']
             player_foto = player_data['player']['photo']
-            cursor.execute("Insert ignore into jogadores(id,nome,imagem) values(%s,%s,%s)", (int(
-                player_id), player_name, player_foto))
+            cursor.execute("Insert ignore into jogadores(id,nome,imagem,id_time) values(%s,%s,%s,%s) ON DUPLICATE KEY UPDATE nome=VALUES(nome), imagem=VALUES(imagem), id_time=VALUES(id_time)", (int(
+                player_id), player_name, player_foto,teamID))
             print(f"Jogador: {player_name}")
             for stat in player_data['statistics']:
                 minutos = stat['games']['minutes']
@@ -132,6 +132,10 @@ for i in result:
                     checkNone(bloqueios), checkNone(interceptacoes), checkNone(duelos), checkNone(
                     duelosGanhos), checkNone(driblesAttempt), checkNone(driblesCompletos),
                     checkNone(jogadoresPassados), checkNone(faltasSofridas), checkNone(faltasCometidas), checkNone(cartaoAmarelo), checkNone(cartaoVermelho), checkNone(penaltiCometido), checkNoneF(nota)))
+                
+    time.sleep(10)
+
+
 conn.commit()
 cursor.close()
 conn.close()

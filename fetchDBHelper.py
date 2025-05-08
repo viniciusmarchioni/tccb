@@ -447,7 +447,7 @@ def estatisticas_formacao_favorita(id_jogador):
     inner join partidas p
     on p.id = e.id_partida
     where id_jogador = %s
-    and data < '2025-01-01'
+    and data < '2026-01-01'
     and p.id_time_casa = e.id_time
     group by formacao
 
@@ -481,7 +481,7 @@ def estatisticas_formacao_favorita(id_jogador):
     inner join partidas p
     on p.id = e.id_partida
     where id_jogador = %s
-    and data < '2025-01-01'
+    and data < '2026-01-01'
     and p.id_time_fora = e.id_time
     group by formacao) as sub
     group by formacao
@@ -601,7 +601,7 @@ def estatisticas_jogador_formacao_especifica(id_jogador, formacao):
         FROM estatisticas e
         INNER JOIN partidas p ON p.id = e.id_partida
         WHERE e.id_jogador = %s
-            AND p.data < '2025-01-01'
+            AND p.data < '2026-01-01'
             AND e.minutos > 15
     ) AS stats
     WHERE formacao = %s
@@ -987,6 +987,55 @@ def recupera_ultimas_partidas():
         on p.id_time_casa = t.id
         inner join times t2
         on p.id_time_fora = t2.id
+        where data < now()
+        GROUP BY p.ID, p.id_time_casa, p.id_time_fora
+        order by data desc
+        ) as sub
+        limit 10
+        ''')
+        result = cursor.fetchall()
+
+        jogos = []
+        for i in result:
+            jogos.append({
+                "mandante": {
+                    "nome": i[5],
+                    "logo": i[7],
+                    "gols": para_int(i[3]),
+                    "id": para_int(i[1]),
+                },
+                "visitante": {
+                    "nome": i[6],
+                    "logo": i[8],
+                    "gols": para_int(i[4]),
+                    "id": para_int(i[2]),
+                },
+                "data": i[9]
+            })
+        return jogos
+
+def recupera_proximas_partidas():
+    conn = mysql.connector.connect(**config)
+    with conn.cursor() as cursor:
+        cursor.execute('''
+        select * from (SELECT 
+            p.ID AS id_partida,
+            p.id_time_casa,
+            p.id_time_fora,
+            COALESCE(SUM(CASE WHEN e.id_time = p.id_time_casa THEN e.gols END), 0) AS gols_time_mandante,
+            COALESCE(SUM(CASE WHEN e.id_time = p.id_time_fora THEN e.gols END), 0) AS gols_time_visitante,
+            t.nome  as time_mandante,
+            t2.nome as time_visitante,
+            t.logo as logo_mandante,
+            t2.logo as logo_visitante,
+            data
+        FROM partidas p
+        LEFT JOIN estatisticas e ON p.ID = e.id_partida
+        inner join times t
+        on p.id_time_casa = t.id
+        inner join times t2
+        on p.id_time_fora = t2.id
+        where data > now()
         GROUP BY p.ID, p.id_time_casa, p.id_time_fora
         order by data desc
         ) as sub
