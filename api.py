@@ -1,7 +1,7 @@
 from flask import Flask, jsonify, request
 from fetchDBHelper import *
 from flask_cors import CORS
-from previsao_XGBoost import prever_resultado
+from previsao_IA import prever_resultado
 
 app = Flask(__name__)
 CORS(app)
