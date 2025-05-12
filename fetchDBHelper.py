@@ -502,29 +502,41 @@ def estatisticas_formacao_favorita(id_jogador):
         estatisticas.arr(result)
         qtd_partidas = int(result[1])
         formacao_favorita = result[0]
+        cursor.fetchall()
+        cursor.close()
+        conn.close()
         return estatisticas, formacao_favorita, qtd_partidas
 
     save_result = result
     result = cursor.fetchone()
-    if (result[1] > 3):
+    if (result and result[1] > 3):
         estatisticas = PlayerStats()
         estatisticas.arr(result)
         qtd_partidas = int(result[1])
         formacao_favorita = result[0]
+        cursor.fetchall()
+        cursor.close()
+        conn.close()
         return estatisticas, formacao_favorita, qtd_partidas
 
     else:
-        if (save_result[2]-result[2] > 0.3):
+        if (result and save_result[2]-result[2] > 0.3):
             estatisticas = PlayerStats()
             estatisticas.arr(result)
             qtd_partidas = int(result[1])
             formacao_favorita = result[0]
+            cursor.fetchall()
+            cursor.close()
+            conn.close()
             return estatisticas, formacao_favorita, qtd_partidas
         else:
             estatisticas = PlayerStats()
             estatisticas.arr(save_result)
             qtd_partidas = int(save_result[1])
             formacao_favorita = save_result[0]
+            cursor.fetchall()
+            cursor.close()
+            conn.close()
             return estatisticas, formacao_favorita, qtd_partidas
 
 
