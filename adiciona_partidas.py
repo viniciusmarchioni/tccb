@@ -29,7 +29,7 @@ fixtures_params = {
     'league': id_campeonato,
     'season': 2025,
     'timezone': 'America/Sao_Paulo',
-    'from': str(datetime.now().date().strftime('%Y-%m-%d')),
+    'from': str((datetime.now().date() - timedelta(days=3)).strftime('%Y-%m-%d')),
     'to': str((datetime.now().date() + timedelta(days=7)).strftime('%Y-%m-%d'))
 }
 fixtures_response = requests.get(
