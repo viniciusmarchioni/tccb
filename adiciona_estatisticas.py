@@ -38,7 +38,7 @@ fixtures_url = f'https://v3.football.api-sports.io/fixtures/players'
 
 
 # Mude o valor de acordo com o campeonato desejado
-query = "SELECT id FROM partidas where id_campeonato = 71 and data > NOW() - INTERVAL 7 DAY;"
+query = "SELECT id FROM partidas where id_campeonato = 71 and data > NOW() - INTERVAL 7 DAY and data < NOW();"
 cursor.execute(query)
 
 
