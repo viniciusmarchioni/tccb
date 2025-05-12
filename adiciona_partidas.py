@@ -2,6 +2,7 @@ import os
 import requests
 import mysql.connector
 import time
+from datetime import datetime, timedelta
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -28,8 +29,8 @@ fixtures_params = {
     'league': id_campeonato,
     'season': 2025,
     'timezone': 'America/Sao_Paulo',
-    'from': '2025-05-07',
-    'to': '2025-05-11'
+    'from': str(datetime.now().date().strftime('%Y-%m-%d')),
+    'to': str((datetime.now().date() + timedelta(days=7)).strftime('%Y-%m-%d'))
 }
 fixtures_response = requests.get(
     fixtures_url, headers=headers, params=fixtures_params)
