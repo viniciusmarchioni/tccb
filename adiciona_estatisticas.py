@@ -2,7 +2,9 @@ import os
 import requests
 import mysql.connector
 import time
+from dotenv import load_dotenv
 
+load_dotenv()
 def checkNone(value):
     if (value == None or value is None):
         return 0

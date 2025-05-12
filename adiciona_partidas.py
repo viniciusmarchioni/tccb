@@ -2,6 +2,9 @@ import os
 import requests
 import mysql.connector
 import time
+from dotenv import load_dotenv
+
+load_dotenv()
 config = {
     'user': os.getenv("DB_USER"),
     'password': os.getenv("DB_PASSWORD"),
