@@ -187,13 +187,13 @@ def obter_jogadores(id_time, formacao, posicao, limit: int = 1000):
     query_param = []
 
     if (posicao == "D"):
-        query_param.append("AVG(duelos_ganhos),")
         query_param.append("AVG(desarmes),")
         query_param.append("AVG(bloqueados)")
+        query_param.append("AVG(duelos_ganhos),")
     elif (posicao == "M"):
         query_param.append("AVG(passes_certos),")
-        query_param.append("AVG(assistencias),")
-        query_param.append("AVG(passes_chaves)")
+        query_param.append("AVG(passes_chaves),")
+        query_param.append("AVG(assistencias)")
     else:
         query_param.append("AVG(gols),")
         query_param.append("AVG(chutes_no_gol),")
@@ -355,7 +355,7 @@ def media_geral(posicao: str):
         return []
     elif (posicao == "D"):
         cursor.execute('''
-        select avg(desarmes),avg(bloqueados),avg(interceptados) from estatisticas
+        select avg(desarmes),avg(bloqueados),avg(duelos_ganhos) from estatisticas
         inner join partidas p
         on p.id = id_partida
         where minutos > 15
@@ -370,7 +370,7 @@ def media_geral(posicao: str):
         return result
     elif (posicao == "M"):
         cursor.execute('''
-        select avg(passes_certos),avg(assistencias),avg(passes_chaves) from estatisticas
+        select avg(passes_certos),avg(passes_chaves),avg(assistencias) from estatisticas
         inner join partidas p
         on p.id = id_partida
         where minutos > 15
