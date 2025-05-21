@@ -796,6 +796,7 @@ def get_destaques(id, formacao=None):
         on p.id = id_partida
         where id_jogador = %s
         and id_time_casa = id_time
+        and minutos > 0
 
         union
 
@@ -804,6 +805,7 @@ def get_destaques(id, formacao=None):
         on p.id = id_partida
         where id_jogador = %s
         and id_time_fora = id_time
+        and minutos > 0
         ) as sub
 
         inner join times t
