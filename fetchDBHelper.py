@@ -188,8 +188,8 @@ def obter_jogadores(id_time, formacao, posicao, limit: int = 1000):
 
     if (posicao == "D"):
         query_param.append("AVG(desarmes),")
-        query_param.append("AVG(bloqueados)")
-        query_param.append("AVG(duelos_ganhos),")
+        query_param.append("AVG(bloqueados),")
+        query_param.append("AVG(duelos_ganhos)")
     elif (posicao == "M"):
         query_param.append("AVG(passes_certos),")
         query_param.append("AVG(passes_chaves),")
