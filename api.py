@@ -52,6 +52,34 @@ def obter_info_time(id):
     }), 200
 
 
+@app.route("/times/<id>/todos", methods=["GET"])
+def obter_todos_jogadores(id):
+
+    formacao = get_formations(id)
+
+    if (formacao == []):
+        return jsonify(), 404
+
+    defensores = []
+    meias = []
+    atacantes = []
+
+    for i in obter_jogadores(id, formacao[0], "D"):
+        defensores.append(i)
+
+    for i in obter_jogadores(id, formacao[0], "M"):
+        meias.append(i)
+
+    for i in obter_jogadores(id, formacao[0], "F"):
+        atacantes.append(i)
+
+    return jsonify({
+        "defensores": [i.__dict__ for i in defensores],
+        "meias": [i.__dict__ for i in meias],
+        "atacantes": [i.__dict__ for i in atacantes]
+    }), 200
+
+
 @app.route("/times/<id>/<formacao>", methods=["GET"])
 def obter_time_formacao(id, formacao):
 
@@ -83,6 +111,27 @@ def obter_time_formacao(id, formacao):
         "atacantes": [i.__dict__ for i in atacantes]
     }), 200
 
+@app.route("/times/<id>/todos/<formacao>", methods=["GET"])
+def obter_time_formacao2(id, formacao):
+
+    defensores = []
+    meias = []
+    atacantes = []
+
+    for i in obter_jogadores(id, formacao, "D"):
+        defensores.append(i)
+
+    for i in obter_jogadores(id, formacao, "M"):
+        meias.append(i)
+
+    for i in obter_jogadores(id, formacao, "F"):
+        atacantes.append(i)
+
+    return jsonify({
+        "defensores": [i.__dict__ for i in defensores],
+        "meias": [i.__dict__ for i in meias],
+        "atacantes": [i.__dict__ for i in atacantes]
+    }), 200
 
 @app.route("/jogadores/medias/", methods=["GET"])
 def obter_medias_jogadores():
@@ -90,21 +139,21 @@ def obter_medias_jogadores():
     media_atacantes = {
         "estatistica1": float(media_atacantes[0]),
         "estatistica2": float(media_atacantes[1]),
-        "estatistica3": float(media_atacantes[1]),
+        "estatistica3": float(media_atacantes[2]),
     }
 
     media_meias = media_geral("M")
     media_meias = {
         "estatistica1": float(media_meias[0]),
         "estatistica2": float(media_meias[1]),
-        "estatistica3": float(media_meias[1]),
+        "estatistica3": float(media_meias[2]),
     }
 
     media_defensores = media_geral("D")
     media_defensores = {
         "estatistica1": float(media_defensores[0]),
         "estatistica2": float(media_defensores[1]),
-        "estatistica3": float(media_defensores[1]),
+        "estatistica3": float(media_defensores[2]),
     }
     return jsonify({"media_atacantes": media_atacantes, "media_meias": media_meias, "media_defensores": media_defensores})
 

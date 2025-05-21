@@ -196,8 +196,8 @@ def obter_jogadores(id_time, formacao, posicao, limit: int = 1000):
         query_param.append("AVG(passes_chaves)")
     else:
         query_param.append("AVG(gols),")
-        query_param.append("AVG(assistencias),")
-        query_param.append("AVG(chutes_no_gol)")
+        query_param.append("AVG(chutes_no_gol),")
+        query_param.append("AVG(assistencias)")
 
     cursor.execute(f'''
     SELECT id_jogador,j.nome, j.imagem, j.nacionalidade, j.data_nascimento,j.lesionado, SUM(minutos) as minutos, {query_param[0]+query_param[1]+query_param[2]}
